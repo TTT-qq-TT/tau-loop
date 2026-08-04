@@ -32,6 +32,33 @@ tau adopt --root .
 
 Both commands create missing workflow files and never overwrite existing user files by default.
 
+## Natural-Language Requests
+
+The user should not need to remember `tau`, `cw`, or the on-disk layout. Interpret ordinary requests such as these as TauLoop work:
+
+- "Keep working until this repo reaches v1."
+- "Create spec1 through spec4, then finish them."
+- "Set up this environment without repeatedly polling downloads."
+
+When a user gives the TauLoop GitHub URL before the skill is installed, read the repository instructions, install it with `python3 install.py` when that action is permitted, then continue from the user's stated goal. A URL alone is not an instruction to modify a machine; respect the user's authorization and report any network or permission blocker.
+
+When a user asks what TauLoop is or how to begin, read `assets/docs/first-use.md` for Chinese users or `assets/docs/first-use.en.md` for English users. Explain it briefly in the user's language, then ask for the outcome they want. Do not create specs, start continuous work, or bury the user in command names before a concrete goal exists. If the user explicitly asks to install and manage an existing project without naming a goal, the non-overwriting `tau adopt` path is allowed; explain what was prepared, then wait for the goal.
+
+For a normal project goal:
+
+1. Determine whether the repository needs `tau init` or the explicit `tau adopt` path. Run the appropriate command yourself.
+2. Turn the goal into one parent task and small, checkable specs. Each spec must state scope, expected result, and verification. Use the project's template and records; do not require the user to author files or type commands.
+3. If the user asks to see a plan first, stop after producing the specs and their definitions of done. Otherwise, work through them in order, verify each result, write a checkpoint, then proceed.
+4. Stop for a genuine human decision: new permissions or spending, an irreversible action, a failed verifier, an unmet dependency, or an explicit review request. A heartbeat, a running PID, or an unfinished chat is never a reason to claim completion.
+
+For a request that names existing specs, inspect their state and advance only the requested, unblocked specs. Report concise evidence at checkpoints rather than narrating frequent progress polls.
+
+## Long Serial Work
+
+Use continuous-work v2 only when the request has bounded serial stages with real commands and verifiers, such as Python -> PyTorch -> simulator -> GPU checks. Create and review the run contract yourself from the packaged template; the user does not need to know that term or call `tau run` manually.
+
+Use v2 to supervise the child process and advance after verification. Do not use it for open-ended research, a task without a completion check, or an unrelated coding change. For long downloads, record low-frequency health evidence and wait for real process events rather than repeatedly polling output.
+
 ## Normal Project Work
 
 After a project is enabled, read its root `AGENTS.md`, then follow its startup order. For non-trivial work, create or update a task spec before implementation, run the project pre-task hook, record verification, and checkpoint before changing scope.
