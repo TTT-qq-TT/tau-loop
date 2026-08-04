@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT=""
+ROOT_SUPPLIED=0
+ARGS=("$@")
+for ((i = 0; i < ${#ARGS[@]}; i++)); do
+  if [[ "${ARGS[$i]}" == "--root" ]]; then
+    next_index=$((i + 1))
+    ROOT="${ARGS[$next_index]:-}"
+    ROOT_SUPPLIED=1
+    break
+  fi
+done
+
+if [[ -z "$ROOT" ]]; then
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
+
+case "${1:-}" in
+run|run-status|run-cancel|run-recover|handoff-create|handoff-launch|handoff-review)
+  SCRIPT="$ROOT/.codex/tools/cw_supervisor.py"
+  if [[ ! -f "$SCRIPT" ]]; then
+    printf 'Missing continuous-work v2 supervisor: %s\nRun tau init --root . first.\n' "$SCRIPT" >&2
+    exit 1
+  fi
+  if [[ "$ROOT_SUPPLIED" -eq 0 ]]; then
+    exec python3 "$SCRIPT" "$1" --root "$ROOT" "${@:2}"
+  fi
+  exec python3 "$SCRIPT" "$@"
+  ;;
+esac
+
+SCRIPT="$ROOT/.codex/tools/cw_state.py"
+if [[ ! -f "$SCRIPT" ]]; then
+  printf 'Missing continuous-work control plane: %s\nRun tau init --root . first.\n' "$SCRIPT" >&2
+  exit 1
+fi
+
+exec python3 "$SCRIPT" "$@"

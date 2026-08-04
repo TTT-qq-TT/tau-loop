@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+code_home="${TAU_LOOP_CODEX_HOME:-${HOME}/.codex}"
+asset_root="${code_home}/skills/tau-loop/assets"
+
+usage() {
+  cat <<'EOF'
+Usage: tau <command> [options]
+
+Commands:
+  init       Initialize a new project or add missing workflow files.
+  adopt      Safely add TauLoop to an existing project.
+  upgrade    Update unchanged tool-managed files in a project.
+  uninstall  Remove unchanged tool-managed files from a project.
+  run        Run a complete continuous-work v2 turn from a reviewed contract.
+  run-status Read evidence for a v2 run.
+  cancel     Request cooperative cancellation of a v2 run.
+  recover    Conservatively inspect a v2 run after interruption.
+  handoff    Create, launch, or review a fresh-context handoff.
+  state      Run the complete v1 durable-state command surface.
+  verify     Run the packaged continuous-work v2 verification hook.
+
+Use `tau <command> --help` for lifecycle command options.
+EOF
+}
+
+require_assets() {
+  if [[ ! -f "${asset_root}/tools/project_lifecycle.py" ]]; then
+    printf 'TauLoop is not installed correctly. Re-run install.py.\n' >&2
+    exit 1
+  fi
+}
+
+command="${1:-}"
+case "${command}" in
+  init|adopt|upgrade|uninstall)
+    require_assets
+    shift
+    exec python3 "${asset_root}/tools/project_lifecycle.py" "${command}" "$@"
+    ;;
+  run|run-status)
+    require_assets
+    exec "${asset_root}/bin/cw" "${command}" "${@:2}"
+    ;;
+  cancel)
+    require_assets
+    exec "${asset_root}/bin/cw" run-cancel "${@:2}"
+    ;;
+  recover)
+    require_assets
+    exec "${asset_root}/bin/cw" run-recover "${@:2}"
+    ;;
+  handoff)
+    require_assets
+    action="${2:-}"
+    case "${action}" in
+      create) exec "${asset_root}/bin/cw" handoff-create "${@:3}" ;;
+      launch) exec "${asset_root}/bin/cw" handoff-launch "${@:3}" ;;
+      review) exec "${asset_root}/bin/cw" handoff-review "${@:3}" ;;
+      *) printf 'Usage: tau handoff <create|launch|review> [options]\n' >&2; exit 1 ;;
+    esac
+    ;;
+  state|status|doctor)
+    require_assets
+    if [[ "${command}" == "state" ]]; then
+      exec "${asset_root}/bin/cw" "${@:2}"
+    fi
+    exec "${asset_root}/bin/cw" "${command}" "${@:2}"
+    ;;
+  verify)
+    require_assets
+    shift
+    root="."
+    if [[ "${1:-}" == "--root" ]]; then
+      root="${2:?missing root value}"
+      shift 2
+    fi
+    if [[ "$#" -ne 0 ]]; then
+      printf 'Unknown verify options. Use: tau verify [--root <dir>]\n' >&2
+      exit 1
+    fi
+    exec "${root}/.codex/hooks/verify-continuous-work-v2.sh" "${root}"
+    ;;
+  -h|--help|help|"")
+    usage
+    ;;
+  *)
+    printf 'Unknown command: %s\n\n' "${command}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
