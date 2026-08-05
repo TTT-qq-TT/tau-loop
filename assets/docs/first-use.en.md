@@ -1,51 +1,89 @@
-# TauLoop: First-use Guide for Codex
+# TauLoop: First Use
 
-This guide is for Codex. When a user first asks how TauLoop works, explain it in plain language. Do not begin with commands, directories, or internal terms.
+**English** | [简体中文](first-use.md)
 
-## One-sentence introduction
+> You do not need to learn a workflow before you are allowed to hand a project to Codex.
+>
+> Name where you want to get to. TauLoop leaves behind what is in progress, what has been verified, and what should happen next.
 
-TauLoop turns a project goal into small, clear pieces of work. Codex completes them, verifies them, and leaves progress behind, so work survives a new session and long tasks do not pretend to advance through repeated log polling.
+## Start with one sentence
 
-## What to say in the first conversation
+In your project, tell Codex:
 
-Tell the user only three things:
+```text
+Use TauLoop to move the current project forward to xxx.
 
-1. They only need to state the outcome, such as "take this project to v1" or "set up this environment."
-2. I will break that goal into specs. Every spec says what to do and how to know it is complete.
-3. After each spec, I verify the result and write a checkpoint. I stop only for a user decision, permission or spending decision, or failed verification.
-4. The project keeps shared memory: `AGENTS.md` says how to begin, `.codex/plan.md` records current work, and `.codex/memory.md` keeps facts that still matter.
+Keep going when you can verify the work yourself; stop only when a real decision is mine.
+```
 
-Then ask one useful question: **"What goal would you like me to move forward first?"**
+Replace `xxx` with the result you actually want: finish a feature, fix a class of problems, set up an environment, or reach a point that is ready to review.
 
-## Explain these words only when needed
+The first time, when TauLoop is not installed yet, send the repository link too:
 
-- **Task**: the outcome the user wants.
-- **Spec**: a small job card with scope and a definition of done.
-- **Checkpoint**: the factual record left after a piece of work; the next session can continue from it.
-- **Harness**: the shared project record for plans, results, and problems.
-- **Long-running work**: serial work that takes time, such as downloading, installing, training, or testing.
+```text
+Please read and install https://github.com/TTT-qq-TT/tau-loop , then use TauLoop to move the current project forward to xxx.
 
-Do not explain every term at once. Explain one in a sentence when the user needs it.
+Keep going when you can verify the work yourself; stop only when a real decision is mine.
+```
 
-## What to do after a goal exists
+You do not need to memorize commands or understand `spec`, `checkpoint`, or `cw` first.
 
-- Create or update one parent task and the needed specs.
-- If the user says "show me the plan first," show only the plan and definitions of done, then wait.
-- If the user says "keep moving," complete the actionable specs in order; verify and checkpoint each one before the next.
-- If the user names `spec1` through `spec4`, advance only those specs and do not expand into unrelated work.
+## Choose a pace
 
-## How to handle long-running work
+### Look at the route first
 
-When work has downloads, installation, training, or ordered commands, first write an execution plan and a verifier for each stage. Supervise the real process and record low-noise health evidence. Do not start the next stage before the prior verifier passes.
+When you do not want work to begin yet, say:
 
-Never call a heartbeat, a live process, or a long log "complete." Do not repeatedly poll download progress.
+```text
+Show me the plan and the definition of done for each part first. Do not implement anything until I approve it.
+```
 
-## When to stop
+You will see how the project is expected to move forward, what makes each part complete, and where your choice is needed.
 
-Stop and ask the user to decide when there is:
+### Keep moving
 
-- A new permission, spending, or irreversible change.
-- Failed verification, a missing dependency, or a recovery choice.
-- A requested review, or completed work that needs acceptance.
+When the goal and boundaries are clear, say:
 
-TauLoop is a foreground local tool. It does not survive a closed terminal or reboot, and fixture success does not prove CUDA, a GPU, or a simulator works in the target project.
+```text
+Continue with the plan. After each part, verify it, leave a checkpoint, then start the next unblocked part.
+```
+
+You should not need to relay every small step. Within a scope that can be checked with evidence, Codex should be able to finish the next piece itself.
+
+### Let a long task run quietly
+
+For downloads, installations, builds, or tests that need time, say:
+
+```text
+Use TauLoop to complete xxx.
+Arrange downloading, installation, and checks as verified stages. Do not start the next stage unless the prior one passes, and do not repeatedly inspect progress logs.
+```
+
+The local command needs to wait, not the chat window. TauLoop records the facts along the way and moves forward only after a check passes.
+
+## The project remembers
+
+After a piece of work ends, the project keeps its plan, definition of done, verification results, and next step. When you return tomorrow or switch to a fresh context, Codex starts from those facts instead of asking you to reconstruct the last chat.
+
+At any time, ask:
+
+```text
+Show me the current plan, the last verified result, and the next step that is safe to continue.
+```
+
+## When TauLoop stops
+
+TauLoop is not meant to let Codex decide everything. These still need your confirmation:
+
+- New permissions, costs, credentials, or irreversible actions.
+- A strategy change after verification fails.
+- Product tradeoffs, release decisions, or any point where you asked for review.
+- An interrupted task whose state cannot be confirmed safely.
+
+A running process, a heartbeat, or a growing log is not completion. Completion needs real verification evidence.
+
+## Want the full picture?
+
+You do not need to read it now. When you want to see how project records work, recover long-running work, use bounded repair, or run commands yourself, open the [complete user manual](user-manual.en.md).
+
+Next time, tell Codex where you want the project to go, then add: "Keep going when you can verify the work yourself; stop only when a real decision is mine."

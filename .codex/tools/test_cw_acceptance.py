@@ -63,10 +63,7 @@ def run_cw_json(script_path: Path, root: Path, *args: str, expect_ok: bool = Tru
 def create_fixture_repo(base_dir: Path, name: str, *, active_spec_id: str = "root-spec") -> Path:
     root = base_dir / name
     root.mkdir(parents=True, exist_ok=True)
-    init = subprocess.run(["git", "init", "-b", "main"], cwd=root, check=False, capture_output=True, text=True)
-    if init.returncode != 0:
-        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
-        subprocess.run(["git", "checkout", "-b", "main"], cwd=root, check=True, capture_output=True, text=True)
+    subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, capture_output=True, text=True)
     write_text(
         root / ".codex" / "memory.md",
         "# Memory\n\n## Current State\n\n- Fixture memory.\n",

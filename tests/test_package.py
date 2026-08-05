@@ -14,8 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 INSTALLER = ROOT / "install.py"
 
 
-def run(command: List[str], *, env: Optional[Dict[str, str]] = None) -> subprocess.CompletedProcess:
-    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env)
+def run(command: List[str], *, env: Optional[Dict[str, str]] = None, cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
+    result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, cwd=cwd)
     if result.returncode != 0:
         raise AssertionError(f"command failed: {' '.join(command)}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
     return result
@@ -55,13 +55,34 @@ class PackageLifecycleTests(unittest.TestCase):
             self.assertTrue(command.is_file())
             environment = dict(os.environ, TAU_LOOP_CODEX_HOME=str(codex_home))
 
+            outside_project = temporary_root / "outside-project"
+            outside_project.mkdir()
+            for loop_command in ("loop", "loop-status", "loop-recover", "loop-cancel"):
+                run([str(command), loop_command, "--help"], env=environment, cwd=outside_project)
+            blocked = subprocess.run(
+                [str(command), "loop", "contract.json"],
+                check=False,
+                capture_output=True,
+                text=True,
+                env=environment,
+                cwd=outside_project,
+            )
+            self.assertNotEqual(blocked.returncode, 0)
+            self.assertIn("Run tau init --root .", blocked.stderr)
+
             run([str(command), "init", "--root", str(project)], env=environment)
             self.assertTrue((project / "AGENTS.md").is_file())
             self.assertTrue((project / ".codex" / "tools" / "cw_supervisor.py").is_file())
+            self.assertTrue((project / ".codex" / "tools" / "cw_agent_loop.py").is_file())
+            self.assertFalse((project / ".codex" / "tools" / "check_markdown_links.py").exists())
+            self.assertFalse((project / ".codex" / "tools" / "project_lifecycle.py").exists())
             self.assertTrue((project / ".codex" / ".tau-loop-managed.json").is_file())
             self.assertIn(project.name, (project / ".codex" / "memory.md").read_text(encoding="utf-8"))
 
             run([str(command), "state", "init", "--root", str(project)], env=environment)
+            for loop_command in ("loop", "loop-status", "loop-recover", "loop-cancel"):
+                run([str(command), loop_command, "--root", str(project), "--help"], env=environment)
+            run([sys.executable, str(codex_home / "skills" / "tau-loop" / "assets" / "tools" / "test_cw_agent_loop.py")])
             status = run([str(command), "status", "--root", str(project)], env=environment)
             self.assertIn('"project"', status.stdout)
 

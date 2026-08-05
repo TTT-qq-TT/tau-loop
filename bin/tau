@@ -18,6 +18,10 @@ Commands:
   cancel     Request cooperative cancellation of a v2 run.
   recover    Conservatively inspect a v2 run after interruption.
   handoff    Create, launch, or review a fresh-context handoff.
+  loop       Run a bounded continuous-work v3 repair loop.
+  loop-status Read facts for a v3 repair loop.
+  loop-recover Conservatively inspect a v3 loop after interruption.
+  loop-cancel Request cooperative cancellation of a v3 loop.
   state      Run the complete v1 durable-state command surface.
   verify     Run the packaged continuous-work v2 verification hook.
 
@@ -60,6 +64,10 @@ case "${command}" in
       review) exec "${asset_root}/bin/cw" handoff-review "${@:3}" ;;
       *) printf 'Usage: tau handoff <create|launch|review> [options]\n' >&2; exit 1 ;;
     esac
+    ;;
+  loop|loop-status|loop-recover|loop-cancel)
+    require_assets
+    exec "${asset_root}/bin/cw" "${command}" "${@:2}"
     ;;
   state|status|doctor)
     require_assets

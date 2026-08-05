@@ -1,6 +1,6 @@
 ---
 name: tau-loop
-description: "Use when a Codex project needs a complete, evidence-backed turn of work: durable specs, verification, checkpoints, recovery, or continuous-work v2 for long serial commands."
+description: "Use when a Codex project needs a complete, evidence-backed turn of work: durable specs, verification, checkpoints, recovery, or continuous work for long serial commands."
 metadata:
   license: MIT
   repository: https://github.com/TTT-qq-TT/tau-loop
@@ -8,7 +8,7 @@ metadata:
 
 # TauLoop
 
-Use this skill to give a repository a lightweight, file-backed execution harness and the complete continuous-work v2 runtime. TauLoop treats `tau = 2pi` as one closed turn: specify, run, verify, checkpoint, then review or hand off.
+Use this skill to give a repository a lightweight, file-backed execution harness and continuous-work runtime. TauLoop treats `tau = 2pi` as one closed turn: specify, run, verify, checkpoint, then review or hand off.
 
 ## First Use
 
@@ -36,7 +36,7 @@ Both commands create missing workflow files and never overwrite existing user fi
 
 The user should not need to remember `tau`, `cw`, or the on-disk layout. Interpret ordinary requests such as these as TauLoop work:
 
-- "Keep working until this repo reaches v1."
+- "Keep working until this repo reaches its next release goal."
 - "Create spec1 through spec4, then finish them."
 - "Set up this environment without repeatedly polling downloads."
 
@@ -55,9 +55,9 @@ For a request that names existing specs, inspect their state and advance only th
 
 ## Long Serial Work
 
-Use continuous-work v2 only when the request has bounded serial stages with real commands and verifiers, such as Python -> PyTorch -> simulator -> GPU checks. Create and review the run contract yourself from the packaged template; the user does not need to know that term or call `tau run` manually.
+Use continuous work only when the request has bounded serial stages with real commands and verifiers, such as Python -> PyTorch -> simulator -> GPU checks. Create and review the run contract yourself from the packaged template; the user does not need to know that term or call `tau run` manually.
 
-Use v2 to supervise the child process and advance after verification. Do not use it for open-ended research, a task without a completion check, or an unrelated coding change. For long downloads, record low-frequency health evidence and wait for real process events rather than repeatedly polling output.
+Use it to supervise the child process and advance after verification. Do not use it for open-ended research, a task without a completion check, or an unrelated coding change. For long downloads, record low-frequency health evidence and wait for real process events rather than repeatedly polling output.
 
 ## Normal Project Work
 
@@ -65,7 +65,7 @@ After a project is enabled, read its root `AGENTS.md`, then follow its startup o
 
 Use `tau upgrade --root . --dry-run` before upgrading an existing project. It only updates tool-managed files whose contents still match the last installed version. It does not rewrite memory, plans, specs, reports, runtime state, or customized files.
 
-## Continuous Work v2
+## Continuous Work
 
 Use continuous work only when a task contains bounded serial stages with explicit commands and verifiers. Create a JSON run contract from `assets/examples/cw-environment-bootstrap.template.md`, review its permissions and deadlines, then run:
 
@@ -91,4 +91,4 @@ For a semantic checkpoint or a new independent spec, use `tau handoff create`, `
 - The core is a foreground, local macOS/Ubuntu supervisor. It does not promise persistence after the terminal dies or automatic creation of a visible Codex Desktop window.
 - Review every run contract. Its declared permissions are an audit boundary, not an operating-system sandbox.
 
-Read `assets/docs/continuous-work-v2.md` for the operator contract and `assets/docs/project-workflow.md` for install, migration, and removal details.
+Read `assets/docs/user-manual.md` for Chinese users or `assets/docs/user-manual.en.md` for English users when complete operating guidance is needed, including installation, project records, long-running work, recovery, and limits.

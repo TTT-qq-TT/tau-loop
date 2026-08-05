@@ -62,6 +62,8 @@ def tool_files(assets: Path) -> Iterable[Tuple[str, Path]]:
         base = assets / directory
         for path in sorted(base.rglob("*")):
             if path.is_file() and "__pycache__" not in path.parts:
+                if path.name in {"check_markdown_links.py", "project_lifecycle.py"}:
+                    continue
                 yield f".codex/{path.relative_to(assets)}", path
 
 

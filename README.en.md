@@ -1,11 +1,13 @@
-<h1 align="center"><strong>τ-Loop</strong></h1>
+<h1 align="center">
+  <img src="docs/images/tauloop-mark.png" alt="" width="48" height="48" valign="middle"> <strong>τ-Loop</strong>
+</h1>
 
 <p align="center">
-  <strong>TauLoop</strong> · τ = 2π · One complete turn, not an endless chat.
+  <strong>TauLoop</strong> · τ = 2π: one complete turn, not an endlessly growing chat.
 </p>
 
 <p align="center">
-  You name the goal. Codex breaks it down, verifies the work, and leaves a record behind.
+  You name the goal. Codex shapes the work, verifies it, and leaves the next step behind.
 </p>
 
 <p align="center">
@@ -16,147 +18,116 @@
 </p>
 
 <p align="center">
-  <a href="README.md">中文</a>
+  <strong>English</strong> · <a href="README.md#chinese">简体中文</a>
 </p>
 
 <p align="center">
-  <a href="#what-it-keeps-safe">What it keeps safe</a> · <a href="#start-with-codex">Start with Codex</a> · <a href="#what-to-say">What to say</a> · <a href="#five-useful-words">Five useful words</a> · <a href="#manual-install">Manual install</a>
+  <a href="#start-with-one-sentence">Start with one sentence</a> · <a href="#three-things-it-keeps-safe">What it keeps safe</a> · <a href="#two-things-it-is-especially-good-at">Two scenarios</a> · <a href="#want-to-look-a-little-closer">Look closer</a> · <a href="#what-it-will-not-do">Limits</a> · <a href="#manual-install">Manual install</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/tauloop-readme-cover.png" alt="TauLoop: one complete turn, continuing forward" width="960">
 </p>
 
 ---
 
-## What it keeps safe
+>You give Codex a goal before bed. The next morning, it is stuck at the very first step, waiting for a decision that should never have been yours.
+>TauLoop leaves the plan, verification results, and next step in the project, so the work is not trapped in one chat.
 
-Giving Codex a task should not mean waking up to discover that it stopped halfway through. TauLoop keeps waiting work, project memory, and the next action in the repository, rather than in one chat that keeps growing.
-
-### Let long-running work wait quietly
-
-For downloads, installation, builds, or tests with explicit commands and completion checks, continuous-work v2 supervises the real local process, records low-noise health evidence, and starts the next stage only after the prior verifier passes. Codex does not need to keep returning to reread a log.
-
-### Let a fresh context pick up the work
-
-After each piece of work, TauLoop writes a checkpoint: what happened, where the evidence is, and what comes next. When work moves to a new session or a clean context, Codex receives those facts instead of an entire old chat.
-
-### Let the project remember its progress
-
-The root `AGENTS.md` tells Codex where to start. `.codex/plan.md` says what is being moved forward now. `.codex/memory.md` keeps the facts that still matter. Together, they are shared project memory rather than knowledge trapped in one window.
-
-> [!NOTE]
-> TauLoop keeps a supervised long-running stage waiting and verifying while the local supervisor is still running. It is not a background service that wakes up after a reboot or closed terminal.
-
----
-
-## Start with Codex
+## Start with one sentence
 
 > [!TIP]
-> **First time here?** You do not need to learn commands or project structure first. Let Codex read TauLoop, then tell it what you want to achieve.
-
-Send the text below, together with this repository URL, to Codex. You do not need to memorize commands.
+> **First time here?** You do not need to learn commands, file layouts, or agent workflows. Send Codex the text below with this repository link, then replace `xxx` with your goal.
 
 ```text
-Please read and install https://github.com/TTT-qq-TT/tau-loop , then use TauLoop to manage the current project.
+Please read and install https://github.com/TTT-qq-TT/tau-loop , then use TauLoop to move the current project forward to xxx.
 
-Briefly explain how I should use TauLoop.
+Keep going when you can verify the work yourself; stop only when a real decision is mine.
 ```
 
-Codex installs the skill and explains, in plain language, how it helps manage the project. It creates specs, starts work, and writes checkpoints only after you give it a concrete goal.
+Codex installs TauLoop and prepares the project records it needs. You do not have to memorize commands or understand `spec`, `checkpoint`, or `harness` first.
 
-<!-- Screenshot TODO: A real Codex conversation receiving the prompt above.
-Suggested path: docs/images/01-tell-codex-the-goal.png -->
+## Three things it keeps safe
 
-## What to say
+### 1. It does not stop in the gaps
 
-Replace the goal and send one of these messages.
+`plan` · `spec`
 
-### Scenario 1: Move a project forward
+>TauLoop turns "get to xxx" into a next step with a definition of done. Once the goal and boundaries are clear, Codex does not have to ask you what to do after every small move.
 
-```text
-Use TauLoop to keep moving this repo until v1 is complete. Break down the work and verify each part. Stop only when you need my decision.
-```
+### 2. It does not start over after a new window
 
-### Scenario 2: Move a known set of tasks forward
+`checkpoint` · `memory`
 
-```text
-Use TauLoop to create spec1 through spec4 and keep moving until they are all complete. Leave a checkpoint after every spec.
-```
+>After each piece of work, the project keeps what happened, where the evidence is, and what comes next. When context fills up or a fresh Codex takes over, it receives those facts, not an entire old chat.
 
-### Scenario 3: See the plan before work begins
+### 3. It does not turn waiting into noise
 
-```text
-Use TauLoop to create specs for this goal. Show me only the plan and the definition of done for each spec. Wait for my approval before making changes.
-```
+`continuous-work`
 
-### Scenario 4: Set up a long environment
-
-```text
-Use TauLoop to set up Python, PyTorch, and a simulator environment.
-Split downloads, installation, and checks into serial stages. Start a stage only after the prior one verifies. Do not keep polling download progress. Stop at a checkpoint when everything is ready.
-```
-
-<!-- Screenshot TODO: A real terminal or Codex view showing one supervised stage and concise health evidence.
-Suggested path: docs/images/02-a-long-task-is-running.png -->
+>Downloads, installs, builds, and tests with clear completion criteria can wait quietly in a local process and be verified. Codex does not need to keep rereading logs, and it does not confuse "the process is still alive" with "the task is done."
 
 ---
 
-## Five useful words
+## Two things it is especially good at
 
-You do not need to learn a new system. These are the only words worth knowing.
+### 1. Move a project to xxx
 
-| Word | Meaning | What to say to Codex |
+You do not need to know every small task up front. State the outcome you need and the places where only you should decide. TauLoop has Codex first lay out the path and the completion criteria for each piece; after verification, it leaves a checkpoint and moves on.
+
+```text
+Use TauLoop to keep moving this repo until xxx is complete.
+Break down the work and verify each piece yourself; stop only when you need my decision.
+```
+
+When you return the next day, you should find inspectable progress, not a long chat you have to understand again.
+
+### 2. Let a long command finish quietly
+
+When dependencies are downloading, an environment is being configured, or a build or test is running, it is the local command that needs to wait, not Codex's chat window. For serial work with explicit steps and verification, TauLoop has Codex write the execution plan, supervise the real process, and start the next stage only after the previous one passes.
+
+```text
+Use TauLoop to configure the xxx environment.
+Split downloading, installation, and checks into serial stages; start the next stage only after the previous one verifies; do not frequently inspect download progress; stop at a checkpoint when everything is complete.
+```
+
+---
+
+## Want to look a little closer?
+
+You do not need to manage TauLoop's workflow. But when a project matters, knowing how to ask these four questions is enough to see where it is going.
+
+| What I want to know now | What TauLoop leaves behind | Say this to Codex |
 | --- | --- | --- |
-| Task | The outcome you want, such as "take this project to v1." | "Take this project to v1." |
-| Spec | A small job card: what to do, what not to do, and how to know it is done. | "Create specs for this goal first." |
-| Harness | The project's shared notebook. It keeps plans, evidence, and problems outside an ever-growing chat. | "Use TauLoop to manage this project." |
-| Checkpoint | The factual record left after a piece of work. A new Codex session can continue from it. | "Write a checkpoint when this is done." |
-| Long-running work | Serial work that takes time: downloading, installing, training, or testing. | "Do not poll; verify before continuing." |
+| Where is the project going now? | **`plan`** records the goal, current phase, and next step. | "Show me the current plan and the step being worked on now." |
+| What makes this piece complete? | **`spec`** defines the scope, completion criteria, and verification. | "Show me the current spec's definition of done, then wait for my approval before starting it." |
+| How can it resume after a new window? | **`checkpoint`** keeps the facts that just happened; **`memory`** keeps facts that still matter. | "Show me this checkpoint and what the project still needs to remember." |
+| What is it waiting for, and when will it continue? | **`continuous-work`** supervises serial work with explicit commands and verification conditions. | "Keep moving this project until feature xx is complete." |
 
-Codex creates the files and calls the tools for you. You can always ask it to explain the current spec, progress, or checkpoint.
+### TauLoop's "one turn"
 
----
+`goal -> checkable step -> verification -> handoff -> next step or your decision`
 
-## What happens in one turn
-
-TauLoop makes work into a turn that can actually finish:
-
-1. Break the goal into small, checkable specs.
-2. Complete the current spec and run its agreed verification.
-3. Write a checkpoint after it passes, then start the next spec or stop for review.
-
-It is not an infinite agent loop. A live process or a heartbeat is not proof that the work is done. Without verification, the next step is not unlocked.
-
-<!-- Screenshot TODO: A real checkpoint or review view after a verified task finishes.
-Suggested path: docs/images/03-verified-checkpoint.png -->
-
----
-
-## Long-running work
-
-For long downloads, environment setup, or a sequence of commands that must run in order, use the long-environment prompt above. TauLoop has Codex write and review an execution plan, supervise the real process, record quiet health evidence, and advance only after verification passes.
+It does not make Codex loop forever. It lets one unit of work complete a whole turn with evidence.
 
 > [!NOTE]
-> You do not need to know what a `run contract` is. It is the record Codex uses to state commands, deadlines, permissions, and verification.
+> These records live in the project. Some people call that a harness; for you, it is simply project work that does not depend on a single chat window.
 
-When you want to inspect it, say:
-
-```text
-Before the long task starts, show me the execution plan, how each stage is verified, and every point where it will wait for my confirmation.
-```
-
-## What it does not do
+## What it will not do
 
 > [!IMPORTANT]
-> **Verify, then continue.** TauLoop is meant to end work with evidence, not keep an agent running forever.
+> **Verify, then continue.** TauLoop is meant to finish work in a checkable way, not let Codex run without boundaries.
 
-- It does not magically survive a reboot or a closed terminal.
-- It does not treat a heartbeat as proof of success.
-- It does not claim that a fixture proves CUDA, a GPU, or a simulator works in your project.
-- It does not make permission, spending, irreversible-change, or recovery decisions for you.
+- It will not magically continue after a computer restart or terminal close.
+- It will not treat a heartbeat as proof of success.
+- It will not claim that CUDA, a GPU, or a simulator works just because a test fixture passes.
+- It will not make decisions about permissions, spending, irreversible changes, or what to do after verification fails.
 
 ---
 
 ## Manual install
 
-The natural-language path above is recommended. Use these commands only when Codex asks you to install it manually:
+The natural-language path above is recommended. You only need these three lines when Codex asks you to install it manually:
 
 ```bash
 git clone https://github.com/TTT-qq-TT/tau-loop.git
@@ -164,14 +135,12 @@ cd tau-loop
 python3 install.py
 ```
 
-After installation, Codex discovers the TauLoop skill. If `~/.codex/bin` is not on your `PATH`, follow Codex's instructions.
+After installation, Codex discovers the TauLoop skill. If your environment does not put `~/.codex/bin` on `PATH`, follow Codex's prompt.
 
 ## Learn more
 
-- [Project workflow and upgrades](assets/docs/project-workflow.md)
-- [First-use guide for Codex](assets/docs/first-use.en.md)
-- [Full guide to long-running work](assets/docs/continuous-work-v2.md)
-- [Legacy control-plane reference](assets/docs/continuous-work-v1.md)
+- [First-use guide](assets/docs/first-use.en.md)
+- [Complete user manual](assets/docs/user-manual.en.md)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 
