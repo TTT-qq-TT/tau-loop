@@ -354,16 +354,14 @@ tau cancel --root . <run-id>
 tau recover --root . <run-id>
 ```
 
-When a contract declares `agent_loop` and you want the controller to handle pre-approved, bounded repairs, use:
+When a stage fails and the failure is repairable, use **agent-led continuous work**: the lead agent is woken, repairs directly, and re-runs until all stages pass or a human gate is reached.
 
 ```bash
-tau loop --root . path/to/contract.json
-tau loop-status --root . <loop-id>
-tau loop-recover --root . <loop-id>
-tau loop-cancel --root . <loop-id>
+tau agent-run --dry-run   # local: prints wake decisions, calls no agent
+tau agent-run             # real: resumes the lead agent to repair and re-run
 ```
 
-The controller keeps loop state, events, repair cases, worker logs, decisions, and candidate patches in `.codex/agent-loops/<loop-id>/`. Each actual stage run still has separate evidence under `.codex/runs/<run-id>/`.
+agent-run records events, the ledger, failure taxonomy, and each attempt's decisions; every real stage run still has its own evidence directory to review.
 
 If a deadline expires, a PID is absent or mismatched, or an old controller cannot be confirmed, work becomes `unknown_recovery_needed`. That is not a signal to try again blindly. Read the snapshot, events, and logs, then choose recovery, a revised contract, a new run, or a human decision.
 
@@ -399,7 +397,7 @@ The fresh invocation receives a package of checkpoints, evidence references, all
 When work is interrupted:
 
 1. Read the current `plan`, active spec, and most recent checkpoint.
-2. For continuous work, read the run or loop state, events, logs, and verifier result.
+2. For continuous work, read the run or agent-run state, events, logs, and verifier result.
 3. Distinguish verified completion, explicit failure, required human recovery, and a controller whose identity is still observable.
 4. Continue only from a state supported by evidence; otherwise review, repair, or start a new contract.
 
@@ -534,9 +532,9 @@ Run `tau init --root .` or `tau adopt --root .` in the target project. Continuou
 
 That is deliberate. Run `tau recover --root . <run-id>` and inspect the snapshot, events, and logs under `.codex/runs/<run-id>/`. Use the evidence to choose recovery, a contract change, or a fresh run.
 
-**`tau loop` cannot be found**
+**Not sure which command handles failure repair**
 
-Run `tau upgrade --root . --dry-run` to inspect the project tools, then upgrade to a TauLoop version containing the current continuous-work runtime. Do not assemble a substitute path from unrelated commands.
+Use agent-led continuous work: first run `tau agent-run --dry-run` locally (no real agent call) to confirm the wake decision, then run `tau agent-run` for real. On failure the lead agent is woken to repair and re-run. If tooling is missing, run `tau upgrade --root . --dry-run` to inspect the project tools, then upgrade to a TauLoop version containing the current continuous-work runtime. Do not assemble a substitute path from unrelated commands.
 
 **Codex keeps asking small questions**
 
@@ -588,11 +586,9 @@ tau handoff create --root . ...
 tau handoff launch --root . <handoff-id>
 tau handoff review --root . <handoff-id>
 
-# Handle a failure within the contract's declared scope
-tau loop --root . path/to/contract.json
-tau loop-status --root . <loop-id>
-tau loop-recover --root . <loop-id>
-tau loop-cancel --root . <loop-id>
+# agent-led continuous work (current main path)
+tau agent-run --dry-run          # local closed loop (no real agent call)
+tau agent-run                    # real resume-driven lead-agent loop
 ```
 
 ### Keep reading

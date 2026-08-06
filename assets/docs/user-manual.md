@@ -368,16 +368,14 @@ tau cancel --root . <run-id>
 tau recover --root . <run-id>
 ```
 
-当合同写有 `agent_loop`，并且你希望控制器在已授权的失败类型上处理受限修复时，使用：
+当阶段失败且属于可修复类型时，用 **agent 主导的连续工作**处理：主导 agent 会被唤醒，直接修复后重跑，直到全部阶段通过或到达人工关口。
 
 ```bash
-tau loop --root . path/to/contract.json
-tau loop-status --root . <loop-id>
-tau loop-recover --root . <loop-id>
-tau loop-cancel --root . <loop-id>
+tau agent-run --dry-run   # 本机：只打印唤醒决策，不真实调用 agent
+tau agent-run             # 真实：resume 主导 agent 修复并重跑
 ```
 
-controller 会在 `.codex/agent-loops/<loop-id>/` 写下状态、事件、repair case、worker 日志、决策和候选补丁；每次实际阶段运行仍有自己的 `.codex/runs/<run-id>/` 证据。
+agent-run 会记录事件、账本、失败分类与每次尝试的决策；每次真实阶段运行仍有自己的证据目录可复查。
 
 出现 deadline 到期、PID 不存在、PID 身份与记录不一致，或无法确认旧 controller 的情况时，运行会进入 `unknown_recovery_needed`。这不是「可以继续试一下」的信号。先阅读 snapshot、事件和日志，再决定是否恢复、修改合同后重新开始，或交给人工处理。
 
@@ -413,7 +411,7 @@ tau handoff review --root . <handoff-id>
 遇到中断时，按下面顺序处理：
 
 1. 查看当前 `plan`、active spec 和最近 checkpoint，确认项目原本在做什么。
-2. 若是连续工作，查看 run 或 loop 的状态、事件、日志和 verifier 结果。
+2. 若是连续工作，查看 run 或 agent-run 的状态、事件、日志和 verifier 结果。
 3. 区分「已验证完成」「明确失败」「需要人工恢复」「仍在被可确认的 controller 管理」。
 4. 只从有明确证据的状态继续；其余情况重新审阅、修复或新建 contract。
 
@@ -552,9 +550,9 @@ TauLoop 希望保持轻量：Python 3.8+、标准库优先、macOS 与 Ubuntu �
 
 这是预期的保守行为。执行 `tau recover --root . <run-id>`，检查 `.codex/runs/<run-id>/` 中的 snapshot、事件和日志。确认事实后再决定继续、修复 contract 或开始新的 run。
 
-**找不到 `tau loop`**
+**想处理失败修复但不知道用什么命令**
 
-先运行 `tau upgrade --root . --dry-run` 检查项目工具，再升级到包含当前连续工作运行层的 TauLoop 版本。不要用别的命令拼凑替代路径。
+用 agent 主导的连续工作：先 `tau agent-run --dry-run` 在本机试跑（不真实调用 agent），确认唤醒决策符合预期后，再用 `tau agent-run` 真实执行。失败时主导 agent 会被唤醒修复并重跑。若工具缺失，先运行 `tau upgrade --root . --dry-run` 检查项目工具，再升级到包含当前连续工作运行层的 TauLoop 版本。不要用别的命令拼凑替代路径。
 
 **Codex 又开始问很多小问题**
 
@@ -577,7 +575,7 @@ TauLoop 希望保持轻量：Python 3.8+、标准库优先、macOS 与 Ubuntu �
 | run contract | 长任务的可审阅执行计划：命令、权限、期限、阶段与 verifier。 |
 | verifier | 在阶段命令结束后判断它是否真的达标的命令。 |
 | continuous-work | TauLoop 对有边界串行本地命令的监督能力。 |
-| agent loop | 连续工作中的有界修复控制器；只在预声明策略内启动新鲜 repair worker。 |
+| agent-led continuous-work | 当前主路径：有记忆的 agent 会话（resume 续接）主导长任务，完成或失败才唤醒，失败由主导 agent 修复后重跑。入口 `tau agent-run`。 |
 
 ### 常用命令
 
@@ -606,11 +604,9 @@ tau handoff create --root . ...
 tau handoff launch --root . <handoff-id>
 tau handoff review --root . <handoff-id>
 
-# 在合同允许的范围内处理失败
-tau loop --root . path/to/contract.json
-tau loop-status --root . <loop-id>
-tau loop-recover --root . <loop-id>
-tau loop-cancel --root . <loop-id>
+# agent 主导的连续工作（当前主路径）
+tau agent-run --dry-run          # 本机自动闭环（不真实调用 agent）
+tau agent-run                    # 真实 resume 主导 agent 循环
 ```
 
 ### 继续阅读

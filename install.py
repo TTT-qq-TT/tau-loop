@@ -55,8 +55,9 @@ def validate_source(root: Path) -> None:
     required = [
         root / "SKILL.md",
         root / "assets" / "tools" / "cw_supervisor.py",
-        root / "assets" / "tools" / "cw_agent_loop.py",
-        root / "assets" / "tools" / "test_cw_agent_loop.py",
+        root / "assets" / "tools" / "cw_agent_runner.py",
+        root / "assets" / "tools" / "test_cw_agent_runner.py",
+        root / "assets" / "tools" / "cw_agent_backends.py",
         root / "assets" / "tools" / "cw_state.py",
         root / "assets" / "tools" / "project_lifecycle.py",
         root / "assets" / "bin" / "cw",

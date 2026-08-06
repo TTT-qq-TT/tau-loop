@@ -68,12 +68,12 @@ class PackageLifecycleTests(unittest.TestCase):
                 cwd=outside_project,
             )
             self.assertNotEqual(blocked.returncode, 0)
-            self.assertIn("Run tau init --root .", blocked.stderr)
+            self.assertIn("deprecated", blocked.stderr)
 
             run([str(command), "init", "--root", str(project)], env=environment)
             self.assertTrue((project / "AGENTS.md").is_file())
             self.assertTrue((project / ".codex" / "tools" / "cw_supervisor.py").is_file())
-            self.assertTrue((project / ".codex" / "tools" / "cw_agent_loop.py").is_file())
+            self.assertTrue((project / ".codex" / "tools" / "cw_agent_runner.py").is_file())
             self.assertFalse((project / ".codex" / "tools" / "check_markdown_links.py").exists())
             self.assertFalse((project / ".codex" / "tools" / "project_lifecycle.py").exists())
             self.assertTrue((project / ".codex" / ".tau-loop-managed.json").is_file())
@@ -82,7 +82,9 @@ class PackageLifecycleTests(unittest.TestCase):
             run([str(command), "state", "init", "--root", str(project)], env=environment)
             for loop_command in ("loop", "loop-status", "loop-recover", "loop-cancel"):
                 run([str(command), loop_command, "--root", str(project), "--help"], env=environment)
-            run([sys.executable, str(codex_home / "skills" / "tau-loop" / "assets" / "tools" / "test_cw_agent_loop.py")])
+            agent_run_help = run([str(command), "agent-run", "--root", str(project), "--help"], env=environment)
+            self.assertIn("agent-led orchestrator", agent_run_help.stdout)
+            run([sys.executable, str(codex_home / "skills" / "tau-loop" / "assets" / "tools" / "test_cw_agent_runner.py")])
             status = run([str(command), "status", "--root", str(project)], env=environment)
             self.assertIn('"project"', status.stdout)
 

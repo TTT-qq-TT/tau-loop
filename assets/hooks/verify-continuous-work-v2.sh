@@ -15,24 +15,44 @@ if [[ -f "$ROOT/.codex/state/project.json" ]]; then
 fi
 
 python3 "$ROOT/.codex/tools/test_cw_supervisor.py"
-python3 "$ROOT/.codex/tools/test_cw_agent_loop.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_session.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_events.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_executor.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_guardrails.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_backends.py"
+python3 "$ROOT/.codex/tools/test_cw_agent_runner.py"
 python3 "$ROOT/.codex/tools/test_cw_app_server_spike.py"
 
 # The source repository additionally proves that installed assets cannot drift.
 if [[ -f "$ROOT/assets/tools/cw_supervisor.py" ]]; then
   python3 "$ROOT/assets/tools/test_cw_supervisor.py"
-  python3 "$ROOT/assets/tools/test_cw_agent_loop.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_session.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_events.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_executor.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_guardrails.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_backends.py"
+  python3 "$ROOT/assets/tools/test_cw_agent_runner.py"
   python3 "$ROOT/assets/tools/test_cw_app_server_spike.py"
   cmp -s "$ROOT/.codex/tools/cw_supervisor.py" "$ROOT/assets/tools/cw_supervisor.py"
   cmp -s "$ROOT/.codex/tools/test_cw_supervisor.py" "$ROOT/assets/tools/test_cw_supervisor.py"
-  cmp -s "$ROOT/.codex/tools/cw_agent_loop.py" "$ROOT/assets/tools/cw_agent_loop.py"
-  cmp -s "$ROOT/.codex/tools/test_cw_agent_loop.py" "$ROOT/assets/tools/test_cw_agent_loop.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_session.py" "$ROOT/assets/tools/cw_agent_session.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_session.py" "$ROOT/assets/tools/test_cw_agent_session.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_events.py" "$ROOT/assets/tools/cw_agent_events.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_events.py" "$ROOT/assets/tools/test_cw_agent_events.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_executor.py" "$ROOT/assets/tools/cw_agent_executor.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_executor.py" "$ROOT/assets/tools/test_cw_agent_executor.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_guardrails.py" "$ROOT/assets/tools/cw_agent_guardrails.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_guardrails.py" "$ROOT/assets/tools/test_cw_agent_guardrails.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_backends.py" "$ROOT/assets/tools/cw_agent_backends.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_backends.py" "$ROOT/assets/tools/test_cw_agent_backends.py"
+  cmp -s "$ROOT/.codex/tools/cw_agent_runner.py" "$ROOT/assets/tools/cw_agent_runner.py"
+  cmp -s "$ROOT/.codex/tools/test_cw_agent_runner.py" "$ROOT/assets/tools/test_cw_agent_runner.py"
   cmp -s "$ROOT/.codex/tools/cw_app_server_spike.py" "$ROOT/assets/tools/cw_app_server_spike.py"
   cmp -s "$ROOT/.codex/tools/test_cw_app_server_spike.py" "$ROOT/assets/tools/test_cw_app_server_spike.py"
   help_dir="$(mktemp -d)"
   (
     cd "$help_dir"
-    "$ROOT/assets/bin/cw" loop --help >/dev/null
+    "$ROOT/assets/bin/cw" agent-run --help >/dev/null
   )
   rmdir "$help_dir"
 fi

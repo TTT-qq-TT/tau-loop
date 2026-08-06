@@ -83,6 +83,17 @@ tau cancel --root . <run-id>
 
 For a semantic checkpoint or a new independent spec, use `tau handoff create`, `tau handoff launch`, and `tau handoff review`. The new Codex invocation receives a bounded handoff package, not the previous chat history.
 
+## Agent-Led Continuous Work (Current Main Path)
+
+For a long task that must keep working across failures, prefer the agent-led path: a memory-backed Codex session (resume continuation) drives the work, wakes only on completion or failure, and the same lead agent repairs and re-runs after failure. Inside an initialized project:
+
+```bash
+tau agent-run --dry-run   # local closed loop: prints wake decisions, calls no agent
+tau agent-run             # real loop: resumes the lead agent after failure
+```
+
+The v3 `cw loop` / `tau loop*` bounded-repair commands are deprecated and archived; their `--help` stays available but execution is blocked, so agents only run the current agent-run path.
+
 ## Boundaries
 
 - A heartbeat proves only that the local supervisor recently observed its managed process. It is not proof of success.
