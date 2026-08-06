@@ -29,6 +29,12 @@ if [[ -f "$ROOT/assets/tools/cw_supervisor.py" ]]; then
   cmp -s "$ROOT/.codex/tools/test_cw_agent_loop.py" "$ROOT/assets/tools/test_cw_agent_loop.py"
   cmp -s "$ROOT/.codex/tools/cw_app_server_spike.py" "$ROOT/assets/tools/cw_app_server_spike.py"
   cmp -s "$ROOT/.codex/tools/test_cw_app_server_spike.py" "$ROOT/assets/tools/test_cw_app_server_spike.py"
+  help_dir="$(mktemp -d)"
+  (
+    cd "$help_dir"
+    "$ROOT/assets/bin/cw" loop --help >/dev/null
+  )
+  rmdir "$help_dir"
 fi
 
 printf 'continuous-work v2 verification passed: %s\n' "$ROOT"
