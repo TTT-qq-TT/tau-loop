@@ -10,18 +10,11 @@
 
 - Major components and their responsibilities.
 - Important boundaries between subsystems.
-- Integration points that new work must respect.
 
 ## Tech Context
 
 - Core stack and runtime assumptions.
 - Important tooling choices.
-- Build, test, and deployment constraints that are stable over time.
-
-## Patterns
-
-- Recurring implementation patterns.
-- Naming, testing, verification, and task-spec patterns that show up repeatedly.
 
 ## Non-Negotiables
 

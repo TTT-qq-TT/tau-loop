@@ -45,9 +45,9 @@ def main() -> int:
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
-    plan_path = repo / ".codex/plan.md"
+    plan_path = repo / ".harness/plan.md"
     if not plan_path.exists():
-        print("Missing .codex/plan.md")
+        print("Missing .harness/plan.md")
         return 1
 
     plan_text = read_text(plan_path)
@@ -59,7 +59,7 @@ def main() -> int:
         if complexity == "quick":
             print("Quick task without spec: allowed")
             return 0
-        print("Non-quick task is missing an active spec in .codex/plan.md")
+        print("Non-quick task is missing an active spec in .harness/plan.md")
         return 1
 
     spec_path = repo / spec_rel

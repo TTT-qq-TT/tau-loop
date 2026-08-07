@@ -10,10 +10,10 @@ import sys
 
 CORE_FILES = [
     "AGENTS.md",
-    ".codex/memory.md",
-    ".codex/plan.md",
-    ".codex/verification.md",
-    ".codex/failure-log.md",
+    ".harness/memory.md",
+    ".harness/plan.md",
+    ".harness/verification.md",
+    ".harness/failure-log.md",
 ]
 
 LEGACY_PATHS = [
@@ -26,7 +26,7 @@ LEGACY_PATHS = [
     "docs/specs/",
 ]
 
-PATH_RE = re.compile(r"`((?:AGENTS\.md|\.codex/)[^`]+)`")
+PATH_RE = re.compile(r"`((?:AGENTS\.md|\.harness/)[^`]+)`")
 
 
 def read_text(path: Path) -> str:
@@ -58,7 +58,7 @@ def main() -> int:
             if legacy in agents_text:
                 errors.append(f"AGENTS.md still references legacy path: {legacy}")
 
-    plan_path = repo / ".codex/plan.md"
+    plan_path = repo / ".harness/plan.md"
     if plan_path.exists():
         plan_text = read_text(plan_path)
         spec_match = re.search(r"^- Spec:[ \t]*([^\n]*)$", plan_text, re.MULTILINE)
@@ -86,7 +86,7 @@ def main() -> int:
             if not candidate.exists():
                 warnings.append(f"{path.relative_to(repo)} references missing path: {rel}")
 
-    memory_path = repo / ".codex/memory.md"
+    memory_path = repo / ".harness/memory.md"
     if memory_path.exists() and plan_path.exists():
         memory_text = read_text(memory_path)
         plan_text = read_text(plan_path)
