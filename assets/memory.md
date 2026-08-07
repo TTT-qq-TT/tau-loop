@@ -29,8 +29,8 @@ Current focus:
 
 Current checkpoints:
 - Last thread ended because: Workflow initialization completed.
-- Safe restart point: Review `AGENTS.md`, `.codex/memory.md`, and `.codex/plan.md` before starting the first task.
-- Must-read files for the next thread: `AGENTS.md`, `.codex/memory.md`, `.codex/plan.md`
+- Safe restart point: Review `AGENTS.md`, `.harness/memory.md`, and `.harness/plan.md` before starting the first task.
+- Must-read files for the next thread: `AGENTS.md`, `.harness/memory.md`, `.harness/plan.md`
 
 ## Important Context
 

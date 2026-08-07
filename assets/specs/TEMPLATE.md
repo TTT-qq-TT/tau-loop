@@ -6,7 +6,7 @@
 - Updated:
 - Related plan:
 - Verification profile:
-  Use a path like `.codex/verification-profiles/code-change.md` when the task should follow a task-type checklist.
+  Use a path like `.harness/verification-profiles/code-change.md` when the task should follow a task-type checklist.
 
 ## 1. Goal
 

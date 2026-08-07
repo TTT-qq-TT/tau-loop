@@ -70,9 +70,9 @@ def main() -> int:
                     errors.append(f"plan points to missing spec: {spec_value}")
 
     search_paths = [agents]
-    codex_dir = repo / ".codex"
-    if codex_dir.exists():
-        search_paths.extend(sorted(codex_dir.rglob("*.md")))
+    harness_dir = repo / ".harness"
+    if harness_dir.exists():
+        search_paths.extend(sorted(harness_dir.rglob("*.md")))
 
     for path in search_paths:
         if not path.exists():
@@ -80,7 +80,7 @@ def main() -> int:
         text = read_text(path)
         for match in PATH_RE.finditer(text):
             rel = match.group(1)
-            if "*" in rel:
+            if "*" in rel or "{" in rel:
                 continue
             candidate = repo / rel
             if not candidate.exists():

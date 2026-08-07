@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -21,28 +20,12 @@ def run(command: List[str], *, env: Optional[Dict[str, str]] = None, cwd: Option
     return result
 
 
+def tau_env(codex_home: Path) -> Dict[str, str]:
+    return dict(os.environ, TAU_LOOP_CODEX_HOME=str(codex_home))
+
+
 class PackageLifecycleTests(unittest.TestCase):
-    def test_adopt_preserves_existing_project_guidance(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="tau-loop-adopt-") as temporary:
-            temporary_root = Path(temporary)
-            codex_home = temporary_root / "codex-home"
-            project = temporary_root / "project"
-            (project / ".codex").mkdir(parents=True)
-            agents = project / "AGENTS.md"
-            memory = project / ".codex" / "memory.md"
-            agents.write_text("# Existing Rules\n\nKeep this file.\n", encoding="utf-8")
-            memory.write_text("# Existing Memory\n", encoding="utf-8")
-            run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--quiet"])
-            command = codex_home / "bin" / "tau"
-            environment = dict(os.environ, TAU_LOOP_CODEX_HOME=str(codex_home))
-
-            run([str(command), "adopt", "--root", str(project)], env=environment)
-
-            self.assertEqual(agents.read_text(encoding="utf-8"), "# Existing Rules\n\nKeep this file.\n")
-            self.assertEqual(memory.read_text(encoding="utf-8"), "# Existing Memory\n")
-            self.assertTrue((project / ".codex" / "tools" / "cw_state.py").is_file())
-
-    def test_clean_install_project_lifecycle_and_uninstall(self) -> None:
+    def test_clean_install_init_verify_and_uninstall(self) -> None:
         with tempfile.TemporaryDirectory(prefix="tau-loop-package-") as temporary:
             temporary_root = Path(temporary)
             codex_home = temporary_root / "codex-home"
@@ -51,86 +34,108 @@ class PackageLifecycleTests(unittest.TestCase):
             run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home)])
 
             command = codex_home / "bin" / "tau"
-            self.assertTrue((codex_home / "skills" / "tau-loop" / "SKILL.md").is_file())
+            skill_root = codex_home / "skills" / "tau-loop"
+            self.assertTrue((skill_root / "SKILL.md").is_file())
+            self.assertTrue((skill_root / "assets" / "AGENTS.md").is_file())
+            self.assertTrue((skill_root / "assets" / "hooks" / "verify.sh").is_file())
+            self.assertTrue((skill_root / "assets" / "tools" / "project_lifecycle.py").is_file())
             self.assertTrue(command.is_file())
-            environment = dict(os.environ, TAU_LOOP_CODEX_HOME=str(codex_home))
 
-            outside_project = temporary_root / "outside-project"
-            outside_project.mkdir()
-            for loop_command in ("loop", "loop-status", "loop-recover", "loop-cancel"):
-                run([str(command), loop_command, "--help"], env=environment, cwd=outside_project)
-            blocked = subprocess.run(
-                [str(command), "loop", "contract.json"],
-                check=False,
-                capture_output=True,
-                text=True,
-                env=environment,
-                cwd=outside_project,
-            )
-            self.assertNotEqual(blocked.returncode, 0)
-            self.assertIn("deprecated", blocked.stderr)
-
-            run([str(command), "init", "--root", str(project)], env=environment)
+            run([str(command), "init", "--root", str(project)], env=tau_env(codex_home))
             self.assertTrue((project / "AGENTS.md").is_file())
-            self.assertTrue((project / ".codex" / "tools" / "cw_supervisor.py").is_file())
-            self.assertTrue((project / ".codex" / "tools" / "cw_agent_runner.py").is_file())
-            self.assertFalse((project / ".codex" / "tools" / "check_markdown_links.py").exists())
-            self.assertFalse((project / ".codex" / "tools" / "project_lifecycle.py").exists())
-            self.assertTrue((project / ".codex" / ".tau-loop-managed.json").is_file())
-            self.assertIn(project.name, (project / ".codex" / "memory.md").read_text(encoding="utf-8"))
+            self.assertTrue((project / ".harness" / "memory.md").is_file())
+            self.assertTrue((project / ".harness" / "plan.md").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "pre-task.sh").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "pre-closeout.sh").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "verify.sh").is_file())
+            self.assertTrue((project / ".harness" / "tools" / "check_doc_freshness.py").is_file())
+            self.assertTrue((project / ".harness" / "tools" / "check_task_state.py").is_file())
+            self.assertTrue((project / ".harness" / "specs" / "TEMPLATE.md").is_file())
+            self.assertTrue((project / ".harness" / ".tau-loop-managed.json").is_file())
+            self.assertTrue((project / ".harness-workflow").is_file())
+            self.assertIn(project.name, (project / ".harness" / "memory.md").read_text(encoding="utf-8"))
 
-            run([str(command), "state", "init", "--root", str(project)], env=environment)
-            for loop_command in ("loop", "loop-status", "loop-recover", "loop-cancel"):
-                run([str(command), loop_command, "--root", str(project), "--help"], env=environment)
-            agent_run_help = run([str(command), "agent-run", "--root", str(project), "--help"], env=environment)
-            self.assertIn("agent-led orchestrator", agent_run_help.stdout)
-            run([sys.executable, str(codex_home / "skills" / "tau-loop" / "assets" / "tools" / "test_cw_agent_runner.py")])
-            status = run([str(command), "status", "--root", str(project)], env=environment)
-            self.assertIn('"project"', status.stdout)
+            # no cw files may be installed
+            cw_files = [p for p in (project / ".harness").rglob("*") if "cw" in p.name.lower()]
+            self.assertEqual(cw_files, [])
 
-            contract = project / "tau-fixture.json"
-            contract.write_text(
-                json.dumps(
-                    {
-                        "schema_version": "cw-run-contract/v1",
-                        "id": "tau-fixture",
-                        "stages": [
-                            {
-                                "id": "write-evidence",
-                                "argv": [sys.executable, "-c", "from pathlib import Path; Path('tau-evidence.txt').write_text('complete')"],
-                                "cwd": ".",
-                                "verifier": {
-                                    "argv": [sys.executable, "-c", "from pathlib import Path; assert Path('tau-evidence.txt').read_text() == 'complete'"],
-                                    "cwd": ".",
-                                },
-                            }
-                        ],
-                    }
-                ),
-                encoding="utf-8",
-            )
-            run([str(command), "run", "--root", str(project), "--run-id", "tau-fixture", "tau-fixture.json"], env=environment)
-            run_status = run([str(command), "run-status", "--root", str(project), "tau-fixture"], env=environment)
-            self.assertIn('"completed"', run_status.stdout)
-            run([str(command), "verify", "--root", str(project)], env=environment)
-            run([str(project / ".codex" / "hooks" / "verify-continuous-work-v1.sh"), str(project)])
+            # the packaged verify hook passes on a freshly initialized project
+            run(["bash", str(project / ".harness" / "hooks" / "verify.sh"), str(project)])
 
-            managed_tool = project / ".codex" / "tools" / "cw_state.py"
-            original_tool = managed_tool.read_text(encoding="utf-8")
-            managed_tool.write_text(original_tool + "\n# local customization\n", encoding="utf-8")
-            preview = run([str(command), "upgrade", "--root", str(project), "--dry-run"], env=environment)
-            self.assertIn("modified or unmanaged", preview.stdout)
-            run([str(command), "upgrade", "--root", str(project)], env=environment)
-            self.assertIn("local customization", managed_tool.read_text(encoding="utf-8"))
-
-            memory = project / ".codex" / "memory.md"
-            run([str(command), "uninstall", "--root", str(project)], env=environment)
-            self.assertTrue(memory.is_file())
-            self.assertTrue(managed_tool.is_file(), "modified tools must survive uninstall")
-
+            # uninstall roundtrip
             run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--uninstall"])
-            self.assertFalse((codex_home / "skills" / "tau-loop").exists())
+            self.assertFalse(skill_root.exists())
             self.assertFalse(command.exists())
+
+    def test_only_init_command_exposed(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="tau-loop-surface-") as temporary:
+            temporary_root = Path(temporary)
+            codex_home = temporary_root / "codex-home"
+            run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--quiet"])
+            command = codex_home / "bin" / "tau"
+
+            help_text = run([str(command), "--help"]).stdout
+            self.assertIn("tau init", help_text)
+
+            for retired in ("adopt", "upgrade", "uninstall", "run", "run-status", "cancel", "recover",
+                            "handoff", "agent-run", "loop", "loop-status", "loop-recover", "loop-cancel",
+                            "state", "status", "doctor", "verify"):
+                with self.subTest(command=retired):
+                    result = subprocess.run([str(command), retired], check=False, capture_output=True, text=True)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("Unknown command", result.stderr)
+
+    def test_init_preserves_existing_user_files(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="tau-loop-preserve-") as temporary:
+            temporary_root = Path(temporary)
+            codex_home = temporary_root / "codex-home"
+            project = temporary_root / "project"
+            (project / ".harness").mkdir(parents=True)
+            agents = project / "AGENTS.md"
+            memory = project / ".harness" / "memory.md"
+            agents.write_text("# Existing Rules\n\nKeep this file.\n", encoding="utf-8")
+            memory.write_text("# Existing Memory\n", encoding="utf-8")
+            run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--quiet"])
+            command = codex_home / "bin" / "tau"
+
+            run([str(command), "init", "--root", str(project)], env=tau_env(codex_home))
+
+            self.assertEqual(agents.read_text(encoding="utf-8"), "# Existing Rules\n\nKeep this file.\n")
+            self.assertEqual(memory.read_text(encoding="utf-8"), "# Existing Memory\n")
+
+
+class PackagedAssetTests(unittest.TestCase):
+    def test_assets_have_no_cw_references(self) -> None:
+        offenders: List[Path] = []
+        for path in sorted((ROOT / "assets").rglob("*")):
+            if not path.is_file() or "__pycache__" in path.parts:
+                continue
+            if path.name.startswith(("cw", "cw_")) or "cw" in path.stem.lower():
+                offenders.append(path)
+                continue
+            if "cw" in path.read_text(encoding="utf-8", errors="ignore").lower():
+                offenders.append(path)
+        self.assertEqual(offenders, [])
+
+    def test_mirror_consistency_between_harness_and_assets(self) -> None:
+        for rel in (
+            "tools/check_doc_freshness.py",
+            "tools/check_task_state.py",
+            "hooks/pre-task.sh",
+            "hooks/pre-closeout.sh",
+            "hooks/verify.sh",
+        ):
+            with self.subTest(rel=rel):
+                harness = ROOT / ".harness" / rel
+                asset = ROOT / "assets" / rel
+                self.assertTrue(harness.is_file(), f"missing .harness/{rel}")
+                self.assertTrue(asset.is_file(), f"missing assets/{rel}")
+                self.assertEqual(harness.read_bytes(), asset.read_bytes(), f"mirror drift: {rel}")
+        self.assertEqual(
+            (ROOT / "AGENTS.md").read_bytes(),
+            (ROOT / "assets" / "AGENTS.md").read_bytes(),
+            "AGENTS.md mirror drift",
+        )
 
 
 if __name__ == "__main__":

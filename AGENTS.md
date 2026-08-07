@@ -92,14 +92,3 @@ If the current thread has compacted once and is growing again, checkpoint and st
 
 If this repository has clearly separate subsystems, add local `AGENTS.md` files inside those subdirectories with more specific guidance. Keep the root file short.
 This follows the emerging hierarchical AGENT/AGENTS pattern used by multi-agent tooling.
-
-## Current Migration Context (2026-08-07)
-
-This repository (tau-loop) is being consolidated into the single source of truth
-for the harness. The active spec is `.harness/specs/tau-loop-convergence-and-productization.md`
-(ready). Read `.harness/memory.md` and `.harness/plan.md` before doing any work.
-Key decisions already frozen: directory is `.harness/` (not `.codex/`), command
-surface is a single `tau init`, no cproj family, install via `install.py` or
-natural-language agent setup. The upstream reference repo (tt-workflow) has been
-overhauled (de-cw, agent-led long tasks as doc-only) and is frozen/archived;
-consult its git history or `.harness/memory.md` for that background.

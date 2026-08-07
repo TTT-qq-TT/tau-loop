@@ -1,6 +1,6 @@
 ---
 name: tau-loop
-description: "Use when a Codex project needs a complete, evidence-backed turn of work: durable specs, verification, checkpoints, recovery, or continuous work for long serial commands."
+description: "Use when a repository needs a lightweight, file-backed execution harness: durable specs, verification checkpoints, and a documented long-task convention. One command (`tau init`) bootstraps the skeleton; natural language is enough everywhere else."
 metadata:
   license: MIT
   repository: https://github.com/TTT-qq-TT/tau-loop
@@ -8,98 +8,65 @@ metadata:
 
 # TauLoop
 
-Use this skill to give a repository a lightweight, file-backed execution harness and continuous-work runtime. TauLoop treats `tau = 2pi` as one closed turn: specify, run, verify, checkpoint, then review or hand off.
+TauLoop gives a repository a lightweight, file-backed execution harness with one command: `tau init`. After that, the workflow is pure convention documented in the project's `AGENTS.md` — no daemon, no state machine, no script execution layer. Long-running work is decoupled from the session by the OS (`nohup`/`screen`) and checked periodically by the agent; the only mechanical guards are the packaged hooks and check scripts.
 
-## First Use
+## First Use — Natural-Language Install (装法一)
 
-Before operating on a project, check that `tau` is installed. The user-level installation creates this skill and one command:
+The user should not need to install anything by hand. When the user points at TauLoop (repository URL or skill name) and asks to use it, the agent installs it:
+
+1. Read the repository instructions from <https://github.com/TTT-qq-TT/tau-loop>.
+2. Download the package to a temp directory:
+   ```bash
+   git clone --depth 1 https://github.com/TTT-qq-TT/tau-loop /tmp/tau-loop-install
+   ```
+3. Run the installer (it places the skill under `~/.codex/skills/tau-loop/` and the `tau` command under `~/.codex/bin/`):
+   ```bash
+   python3 /tmp/tau-loop-install/install.py
+   ```
+4. Confirm `tau --help` works (and `~/.codex/bin` is on PATH); optionally remove the temp clone:
+   ```bash
+   rm -rf /tmp/tau-loop-install
+   ```
+5. Continue from the user's stated goal.
+
+Run the install steps only when the user asked for installation or that action is permitted. Report any network or permission blocker instead of silently failing. If the agent cannot install, fall back to telling the user the terminal commands for 装法二.
+
+## Terminal Install (装法二)
 
 ```bash
-tau --help
+cd <checked-out tau-loop repo>
+python3 install.py
 ```
 
-To enable a new or existing repository, run:
+Uninstall: `python3 install.py --uninstall`.
+
+## Enable a Project — Command (用法一)
 
 ```bash
+cd <project>
 tau init --root .
 ```
 
-For an existing repository with its own `AGENTS.md` or `.codex/` files, use the more explicit spelling:
+Creates the missing skeleton only: `AGENTS.md` plus `.harness/` (spec templates, hooks, check scripts, verification profiles). It never overwrites existing user files.
 
-```bash
-tau adopt --root .
-```
+## Enable a Project — Natural Language (用法二)
 
-Both commands create missing workflow files and never overwrite existing user files by default.
+The user just says, for example: "我要用 tauloop 管理这个项目". Run `tau init --root .` yourself in the project directory, explain briefly what was prepared, then wait for the goal.
 
-## Natural-Language Requests
+## The Workflow (convention only, after init)
 
-The user should not need to remember `tau`, `cw`, or the on-disk layout. Interpret ordinary requests such as these as TauLoop work:
+After init, the project's `AGENTS.md` owns the convention:
 
-- "Keep working until this repo reaches its next release goal."
-- "Create spec1 through spec4, then finish them."
-- "Set up this environment without repeatedly polling downloads."
-
-When a user gives the TauLoop GitHub URL before the skill is installed, read the repository instructions, install it with `python3 install.py` when that action is permitted, then continue from the user's stated goal. A URL alone is not an instruction to modify a machine; respect the user's authorization and report any network or permission blocker.
-
-When a user asks what TauLoop is or how to begin, read `assets/docs/first-use.md` for Chinese users or `assets/docs/first-use.en.md` for English users. Explain it briefly in the user's language, then ask for the outcome they want. Do not create specs, start continuous work, or bury the user in command names before a concrete goal exists. If the user explicitly asks to install and manage an existing project without naming a goal, the non-overwriting `tau adopt` path is allowed; explain what was prepared, then wait for the goal.
-
-For a normal project goal:
-
-1. Determine whether the repository needs `tau init` or the explicit `tau adopt` path. Run the appropriate command yourself.
-2. Turn the goal into one parent task and small, checkable specs. Each spec must state scope, expected result, and verification. Use the project's template and records; do not require the user to author files or type commands.
-3. If the user asks to see a plan first, stop after producing the specs and their definitions of done. Otherwise, work through them in order, verify each result, write a checkpoint, then proceed.
-4. Stop for a genuine human decision: new permissions or spending, an irreversible action, a failed verifier, an unmet dependency, or an explicit review request. A heartbeat, a running PID, or an unfinished chat is never a reason to claim completion.
-
-For a request that names existing specs, inspect their state and advance only the requested, unblocked specs. Report concise evidence at checkpoints rather than narrating frequent progress polls.
-
-## Long Serial Work
-
-Use continuous work only when the request has bounded serial stages with real commands and verifiers, such as Python -> PyTorch -> simulator -> GPU checks. Create and review the run contract yourself from the packaged template; the user does not need to know that term or call `tau run` manually.
-
-Use it to supervise the child process and advance after verification. Do not use it for open-ended research, a task without a completion check, or an unrelated coding change. For long downloads, record low-frequency health evidence and wait for real process events rather than repeatedly polling output.
-
-## Normal Project Work
-
-After a project is enabled, read its root `AGENTS.md`, then follow its startup order. For non-trivial work, create or update a task spec before implementation, run the project pre-task hook, record verification, and checkpoint before changing scope.
-
-Use `tau upgrade --root . --dry-run` before upgrading an existing project. It only updates tool-managed files whose contents still match the last installed version. It does not rewrite memory, plans, specs, reports, runtime state, or customized files.
-
-## Continuous Work
-
-Use continuous work only when a task contains bounded serial stages with explicit commands and verifiers. Create a JSON run contract from `assets/examples/cw-environment-bootstrap.template.md`, review its permissions and deadlines, then run:
-
-```bash
-tau state init --root .
-tau run --root . contract.json
-```
-
-The supervisor owns the child process, waits for it without chat polling, records low-frequency local health evidence, and advances only after the stage verifier passes. Inspect or stop it with:
-
-```bash
-tau run-status --root . <run-id>
-tau cancel --root . <run-id>
-```
-
-For a semantic checkpoint or a new independent spec, use `tau handoff create`, `tau handoff launch`, and `tau handoff review`. The new Codex invocation receives a bounded handoff package, not the previous chat history.
-
-## Agent-Led Continuous Work (Current Main Path)
-
-For a long task that must keep working across failures, prefer the agent-led path: a memory-backed Codex session (resume continuation) drives the work, wakes only on completion or failure, and the same lead agent repairs and re-runs after failure. Inside an initialized project:
-
-```bash
-tau agent-run --dry-run   # local closed loop: prints wake decisions, calls no agent
-tau agent-run             # real loop: resumes the lead agent after failure
-```
-
-The v3 `cw loop` / `tau loop*` bounded-repair commands are deprecated and archived; their `--help` stays available but execution is blocked, so agents only run the current agent-run path.
+- Read `.harness/memory.md` then `.harness/plan.md`, then the active task spec.
+- Non-trivial work starts as a spec (`.harness/specs/<slug>.md`) before code changes.
+- Long-running work follows the `Long-Running Tasks` section of `AGENTS.md`: plan as a spec, launch decoupled (`nohup`/`screen`), sleep in-session, wake and check the log and process, record evidence, then close out.
+- Close out a task with `.harness/hooks/pre-closeout.sh`; `verify.sh` checks doc freshness, task state, and (in the source repo) that packaged assets cannot drift.
 
 ## Boundaries
 
-- A heartbeat proves only that the local supervisor recently observed its managed process. It is not proof of success.
-- Do not advance when a deadline, PID identity, verifier, or recovery check fails. Stop in the recorded recovery state.
-- Do not claim that fixture success proves CUDA, a simulator, or a GPU works. Validate those in a named target repository.
-- The core is a foreground, local macOS/Ubuntu supervisor. It does not promise persistence after the terminal dies or automatic creation of a visible Codex Desktop window.
-- Review every run contract. Its declared permissions are an audit boundary, not an operating-system sandbox.
+- TauLoop does not run your commands for you and has no daemon or event system. Long tasks are owned by the OS and visited periodically by the agent.
+- A running process is not success; completion requires real verification evidence.
+- `tau` has exactly one command today: `tau init` (+ `--help`). Everything else is convention, not command surface.
+- Review every spec and its verification before advancing. Stop for genuine human decisions: new permissions, spending, irreversible actions, failed verifiers, unmet dependencies, or an explicit review request.
 
-Read `assets/docs/user-manual.md` for Chinese users or `assets/docs/user-manual.en.md` for English users when complete operating guidance is needed, including installation, project records, long-running work, recovery, and limits.
+Read `assets/docs/first-use.md` (简体中文) or `assets/docs/first-use.en.md` (English) for onboarding, and `assets/docs/user-manual.md` / `assets/docs/user-manual.en.md` for complete operating guidance.

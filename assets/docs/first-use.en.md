@@ -1,89 +1,45 @@
-# TauLoop: First Use
+# TauLoop First-Use Guide
 
-**English** | [简体中文](first-use.md)
+[简体中文](first-use.md) | **English**
 
-> You do not need to learn a workflow before you are allowed to hand a project to Codex.
->
-> Name where you want to get to. TauLoop leaves behind what is in progress, what has been verified, and what should happen next.
+> Hand the goal to your agent; TauLoop handles the records and verification.
 
-## Start with one sentence
+## Get Started
 
-In your project, tell Codex:
+Send this to your agent, replacing `xxx` with the outcome you actually want:
 
 ```text
-Use TauLoop to move the current project forward to xxx.
+Please read and install https://github.com/TTT-qq-TT/tau-loop , then use TauLoop to move the current project to xxx.
 
-Keep going when you can verify the work yourself; stop only when a real decision is mine.
+Continue on your own when you can verify; stop when I really need to decide.
 ```
 
-Replace `xxx` with the result you actually want: finish a feature, fix a class of problems, set up an environment, or reach a point that is ready to review.
+The agent will:
 
-The first time, when TauLoop is not installed yet, send the repository link too:
+1. Download and install TauLoop (the skill + the `tau` command);
+2. Run `tau init` in the project, creating `AGENTS.md` and the `.harness/` skeleton;
+3. Break your goal into small checkable tasks (specs), complete them one by one, and record verification.
+
+You do not need to memorize commands or understand `spec`, `checkpoint`, or `harness` first.
+
+If you want to see the plan first, add:
 
 ```text
-Please read and install https://github.com/TTT-qq-TT/tau-loop , then use TauLoop to move the current project forward to xxx.
-
-Keep going when you can verify the work yourself; stop only when a real decision is mine.
+Only show me the plan and the definition of done for each part first; start after I confirm.
 ```
 
-You do not need to memorize commands or understand `spec`, `checkpoint`, or `cw` first.
+## Manual Install (only for troubleshooting)
 
-## Choose a pace
+Requires Python 3.9+.
 
-### Look at the route first
-
-When you do not want work to begin yet, say:
-
-```text
-Show me the plan and the definition of done for each part first. Do not implement anything until I approve it.
+```bash
+git clone --depth 1 https://github.com/TTT-qq-TT/tau-loop /tmp/tau-loop-install
+python3 /tmp/tau-loop-install/install.py
 ```
 
-You will see how the project is expected to move forward, what makes each part complete, and where your choice is needed.
+## After That
 
-### Keep moving
-
-When the goal and boundaries are clear, say:
-
-```text
-Continue with the plan. After each part, verify it, leave a checkpoint, then start the next unblocked part.
-```
-
-You should not need to relay every small step. Within a scope that can be checked with evidence, Codex should be able to finish the next piece itself.
-
-### Let a long task run quietly
-
-For downloads, installations, builds, or tests that need time, say:
-
-```text
-Use TauLoop to complete xxx.
-Arrange downloading, installation, and checks as verified stages. Do not start the next stage unless the prior one passes, and do not repeatedly inspect progress logs.
-```
-
-The local command needs to wait, not the chat window. TauLoop records the facts along the way and moves forward only after a check passes.
-
-## The project remembers
-
-After a piece of work ends, the project keeps its plan, definition of done, verification results, and next step. When you return tomorrow or switch to a fresh context, Codex starts from those facts instead of asking you to reconstruct the last chat.
-
-At any time, ask:
-
-```text
-Show me the current plan, the last verified result, and the next step that is safe to continue.
-```
-
-## When TauLoop stops
-
-TauLoop is not meant to let Codex decide everything. These still need your confirmation:
-
-- New permissions, costs, credentials, or irreversible actions.
-- A strategy change after verification fails.
-- Product tradeoffs, release decisions, or any point where you asked for review.
-- An interrupted task whose state cannot be confirmed safely.
-
-A running process, a heartbeat, or a growing log is not completion. Completion needs real verification evidence.
-
-## Want the full picture?
-
-You do not need to read it now. When you want to see how project records work, recover long-running work, use bounded repair, or run commands yourself, open the [complete user manual](user-manual.en.md).
-
-Next time, tell Codex where you want the project to go, then add: "Keep going when you can verify the work yourself; stop only when a real decision is mine."
+- Day to day: tell the agent where you want to take the project, and "continue when you can verify; stop when I really need to decide".
+- Long commands: the agent hands the process to the OS with `nohup`/`screen` and wakes periodically to check — it never fills the conversation.
+- Legacy projects: repos still using `.codex/` should migrate once via the [migration guide](migration-from-codex.md).
+- To go deeper: read the [full user manual](user-manual.en.md).

@@ -21,7 +21,7 @@
 
 ## Verification Plan
 
-- Run `.codex/hooks/pre-task.sh` before the first non-trivial task.
+- Run `.harness/hooks/pre-task.sh` before the first non-trivial task.
 
 ## Checkpoint Trigger
 

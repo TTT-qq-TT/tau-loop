@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 - 2026-08-07
+
+- Consolidate into the single tau-loop repository; tt-workflow is frozen as historical archive.
+- Remove the entire cw surface: dispatch shell, state machine, agent-led runtime, spike, supervisor, hooks, fixtures, and contract examples.
+- Command surface converges to a single `tau init` (bootstrap skeleton); uninstall moves to `python3 install.py --uninstall`.
+- Harness directory is `.harness/` (agent-agnostic, not bound to Codex); enrollment marker is `.harness-workflow`.
+- Long-running tasks become a documentation convention in `AGENTS.md` (`Long-Running Tasks`: nohup/screen decouple + sleep + wake-and-check), with hooks as the only mechanical guard.
+- Productized install/use channels: install by natural language (SKILL.md guidance) or terminal (`install.py`); enable a project by `tau init` or by natural language.
+- Development-sandbox state (`.harness/memory.md`, `plan.md`, `report.md`, `failure-log.md`, task specs) is gitignored and never published.
+- Packaged assets mirror `.harness/` and are verified by `verify.sh` (doc freshness + task state + mirror consistency).
+- SKILL.md rewritten for the new capability surface; README and user manuals (zh/en) finalized for it too (owner 2026-08-07).
+
 ## 0.3.0 - 2026-08-07
 
 - Align the packaged assets with the latest tt-workflow: add the agent-led continuous-work runtime and multi-agent backend adapters.

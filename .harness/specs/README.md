@@ -29,11 +29,11 @@ Use these markers inside the implementation checklist:
 ## Verification Profile
 
 - If the task needs a reusable task-type checklist, set `Verification profile` in the spec header.
-- Use a path under `.codex/verification-profiles/`.
+- Use a path under `.harness/verification-profiles/`.
 - Read only the selected profile, not the whole directory.
 
 ## Naming
 
 - Use one file per non-trivial task.
 - Prefer short, descriptive slugs such as `add-oauth-device-flow.md`.
-- Keep the active spec path referenced from `.codex/plan.md`.
+- Keep the active spec path referenced from `.harness/plan.md`.

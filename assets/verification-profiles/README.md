@@ -4,9 +4,9 @@ Use one verification profile per non-trivial task when the default closeout chec
 
 ## Rule
 
-- Keep profile choice explicit in `.codex/plan.md` or the active spec.
+- Keep profile choice explicit in `.harness/plan.md` or the active spec.
 - Read only the profile that matches the task.
-- If none fit, use `.codex/verification.md` plus task-specific checks in the spec.
+- If none fit, use `.harness/verification.md` plus task-specific checks in the spec.
 
 ## Available Profiles
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Safe project lifecycle operations for tau-loop."""
+"""Bootstrap the TauLoop skeleton in a project (the single `tau init` command)."""
 
 from __future__ import annotations
 
@@ -11,11 +11,11 @@ import shutil
 import stat
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, Tuple
 
 
-MANIFEST_RELATIVE = Path(".codex/.tau-loop-managed.json")
-MARKER_RELATIVE = Path(".codex-workflow")
+MANIFEST_RELATIVE = Path(".harness/.tau-loop-managed.json")
+MARKER_RELATIVE = Path(".harness-workflow")
 SCHEMA_VERSION = 1
 
 USER_FILES = (
@@ -33,7 +33,6 @@ USER_FILES = (
     "verification-profiles/docs-workflow.md",
     "verification-profiles/refactor.md",
     "verification-profiles/reliability.md",
-    "state/README.md",
 )
 
 
@@ -54,7 +53,7 @@ def source_path(assets: Path, relative: str) -> Path:
 def target_path(root: Path, relative: str) -> Path:
     if relative == "AGENTS.md":
         return root / relative
-    return root / ".codex" / relative
+    return root / ".harness" / relative
 
 
 def tool_files(assets: Path) -> Iterable[Tuple[str, Path]]:
@@ -64,16 +63,15 @@ def tool_files(assets: Path) -> Iterable[Tuple[str, Path]]:
             if path.is_file() and "__pycache__" not in path.parts:
                 if path.name in {"check_markdown_links.py", "project_lifecycle.py"}:
                     continue
-                yield f".codex/{path.relative_to(assets)}", path
+                yield f".harness/{path.relative_to(assets)}", path
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Manage tau-loop files in a project.")
-    parser.add_argument("command", choices=("init", "adopt", "upgrade", "uninstall"))
+    parser = argparse.ArgumentParser(description="Bootstrap the TauLoop skeleton in a project.")
+    parser.add_argument("command", choices=("init",))
     parser.add_argument("--root", default=".", help="project root (default: current directory)")
     parser.add_argument("--dry-run", action="store_true", help="show planned actions without writing")
-    parser.add_argument("--force", action="store_true", help="replace a modified tool-managed file")
-    parser.add_argument("--no-brief", action="store_true", help="do not create .codex/brief.md on init/adopt")
+    parser.add_argument("--no-brief", action="store_true", help="do not create .harness/brief.md on init")
     return parser.parse_args()
 
 
@@ -104,7 +102,7 @@ def print_action(action: str, path: Path, detail: str = "") -> None:
 
 def create_marker(root: Path, dry_run: bool) -> None:
     marker = root / MARKER_RELATIVE
-    text = "managed_by=tau-loop\nstate_dir=.codex\n"
+    text = "managed_by=tau-loop\nstate_dir=.harness\n"
     if marker.exists():
         print_action("keep", marker)
         return
@@ -118,8 +116,10 @@ def seed_memory(path: Path, project_name: str) -> None:
     path.write_text(text.replace("<repo-name>", project_name), encoding="utf-8")
 
 
-def init_or_adopt(root: Path, assets: Path, command: str, dry_run: bool, no_brief: bool) -> int:
+def init(root: Path, assets: Path, dry_run: bool, no_brief: bool) -> int:
     root.mkdir(parents=True, exist_ok=True)
+
+    # User-owned records: create missing only, never overwrite.
     for relative in USER_FILES:
         if no_brief and relative == "brief.md":
             continue
@@ -134,28 +134,7 @@ def init_or_adopt(root: Path, assets: Path, command: str, dry_run: bool, no_brie
             if relative == "memory.md":
                 seed_memory(target, root.name)
 
-    manifest = load_manifest(root)
-    tools = manifest["tools"]
-    for relative, source in tool_files(assets):
-        target = root / relative
-        if target.exists():
-            print_action("keep", target, "existing tool")
-            continue
-        print_action("create", target)
-        if not dry_run:
-            write_file(source, target)
-            tools[relative] = {"sha256": digest(target)}
-
-    create_marker(root, dry_run)
-    manifest_path = root / MANIFEST_RELATIVE
-    if not dry_run:
-        manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"done  {command} completed for {root}")
-    return 0
-
-
-def upgrade(root: Path, assets: Path, dry_run: bool, force: bool) -> int:
+    # Tool-managed files: create missing; refresh unmodified; keep modified.
     manifest = load_manifest(root)
     tools = manifest["tools"]
     for relative, source in tool_files(assets):
@@ -169,47 +148,23 @@ def upgrade(root: Path, assets: Path, dry_run: bool, force: bool) -> int:
             continue
         current = digest(target)
         prior_digest = prior.get("sha256") if isinstance(prior, dict) else None
-        if force or (prior_digest and current == prior_digest):
+        if prior_digest and current == prior_digest:
             if current == digest(source):
                 print_action("keep", target, "current")
                 continue
-            print_action("update", target, "forced" if force and current != prior_digest else "managed")
+            print_action("update", target, "managed")
             if not dry_run:
                 write_file(source, target)
                 tools[relative] = {"sha256": digest(target)}
             continue
-        print_action("skip", target, "modified or unmanaged")
+        print_action("keep", target, "modified or unmanaged")
 
+    create_marker(root, dry_run)
     manifest_path = root / MANIFEST_RELATIVE
     if not dry_run:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"done  upgrade {'preview' if dry_run else 'completed'} for {root}")
-    return 0
-
-
-def uninstall(root: Path, dry_run: bool) -> int:
-    manifest = load_manifest(root)
-    tools = manifest["tools"]
-    for relative, record in sorted(tools.items()):
-        target = root / relative
-        expected = record.get("sha256") if isinstance(record, dict) else None
-        if target.is_file() and expected == digest(target):
-            print_action("remove", target)
-            if not dry_run:
-                target.unlink()
-        elif target.exists():
-            print_action("keep", target, "modified")
-    marker = root / MARKER_RELATIVE
-    if marker.is_file() and "managed_by=tau-loop" in marker.read_text(encoding="utf-8"):
-        print_action("remove", marker)
-        if not dry_run:
-            marker.unlink()
-    if not dry_run:
-        manifest_path = root / MANIFEST_RELATIVE
-        if manifest_path.exists():
-            manifest_path.unlink()
-    print(f"done  uninstall {'preview' if dry_run else 'completed'} for {root}")
+    print(f"done  init completed for {root}")
     return 0
 
 
@@ -217,13 +172,9 @@ def main() -> int:
     args = parse_args()
     root = Path(args.root).expanduser().resolve()
     assets = source_root()
-    if not (assets / "tools" / "cw_supervisor.py").is_file():
+    if not (assets / "tools" / "check_task_state.py").is_file():
         raise SystemExit(f"Invalid tau-loop asset root: {assets}")
-    if args.command in ("init", "adopt"):
-        return init_or_adopt(root, assets, args.command, args.dry_run, args.no_brief)
-    if args.command == "upgrade":
-        return upgrade(root, assets, args.dry_run, args.force)
-    return uninstall(root, args.dry_run)
+    return init(root, assets, args.dry_run, args.no_brief)
 
 
 if __name__ == "__main__":

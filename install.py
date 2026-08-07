@@ -54,13 +54,16 @@ def log(enabled: bool, message: str) -> None:
 def validate_source(root: Path) -> None:
     required = [
         root / "SKILL.md",
-        root / "assets" / "tools" / "cw_supervisor.py",
-        root / "assets" / "tools" / "cw_agent_runner.py",
-        root / "assets" / "tools" / "test_cw_agent_runner.py",
-        root / "assets" / "tools" / "cw_agent_backends.py",
-        root / "assets" / "tools" / "cw_state.py",
+        root / "assets" / "AGENTS.md",
+        root / "assets" / "hooks" / "pre-task.sh",
+        root / "assets" / "hooks" / "pre-closeout.sh",
+        root / "assets" / "hooks" / "verify.sh",
+        root / "assets" / "tools" / "check_doc_freshness.py",
+        root / "assets" / "tools" / "check_task_state.py",
+        root / "assets" / "tools" / "check_markdown_links.py",
         root / "assets" / "tools" / "project_lifecycle.py",
-        root / "assets" / "bin" / "cw",
+        root / "assets" / "specs" / "TEMPLATE.md",
+        root / "assets" / "verification.md",
         root / "bin" / COMMAND_NAME,
     ]
     missing = [str(path) for path in required if not path.is_file()]

@@ -10,10 +10,10 @@ import sys
 
 CORE_FILES = [
     "AGENTS.md",
-    ".codex/memory.md",
-    ".codex/plan.md",
-    ".codex/verification.md",
-    ".codex/failure-log.md",
+    ".harness/memory.md",
+    ".harness/plan.md",
+    ".harness/verification.md",
+    ".harness/failure-log.md",
 ]
 
 LEGACY_PATHS = [
@@ -26,7 +26,7 @@ LEGACY_PATHS = [
     "docs/specs/",
 ]
 
-PATH_RE = re.compile(r"`((?:AGENTS\.md|\.codex/)[^`]+)`")
+PATH_RE = re.compile(r"`((?:AGENTS\.md|\.harness/)[^`]+)`")
 
 
 def read_text(path: Path) -> str:
@@ -58,7 +58,7 @@ def main() -> int:
             if legacy in agents_text:
                 errors.append(f"AGENTS.md still references legacy path: {legacy}")
 
-    plan_path = repo / ".codex/plan.md"
+    plan_path = repo / ".harness/plan.md"
     if plan_path.exists():
         plan_text = read_text(plan_path)
         spec_match = re.search(r"^- Spec:[ \t]*([^\n]*)$", plan_text, re.MULTILINE)
@@ -70,9 +70,9 @@ def main() -> int:
                     errors.append(f"plan points to missing spec: {spec_value}")
 
     search_paths = [agents]
-    codex_dir = repo / ".codex"
-    if codex_dir.exists():
-        search_paths.extend(sorted(codex_dir.rglob("*.md")))
+    harness_dir = repo / ".harness"
+    if harness_dir.exists():
+        search_paths.extend(sorted(harness_dir.rglob("*.md")))
 
     for path in search_paths:
         if not path.exists():
@@ -80,13 +80,13 @@ def main() -> int:
         text = read_text(path)
         for match in PATH_RE.finditer(text):
             rel = match.group(1)
-            if "*" in rel:
+            if "*" in rel or "{" in rel:
                 continue
             candidate = repo / rel
             if not candidate.exists():
                 warnings.append(f"{path.relative_to(repo)} references missing path: {rel}")
 
-    memory_path = repo / ".codex/memory.md"
+    memory_path = repo / ".harness/memory.md"
     if memory_path.exists() and plan_path.exists():
         memory_text = read_text(memory_path)
         plan_text = read_text(plan_path)
