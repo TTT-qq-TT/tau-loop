@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 - 2026-08-08
+
+- README (zh/en) restructured around the product's essence: minimal (one `tau init`, no daemon / state machine / command surface), files-as-truth (records live in `.harness/`), and a thin mechanical backstop (hooks and check scripts).
+- Positioning: for newcomers who find harness / loop-engineering terms daunting, and for those who find existing workflow skills too heavy — light, capable, pain-point-only.
+- New standalone `README.zh.md`; the bilingual `README.md` keeps the in-page language switch, with `README.en.md` as the English standalone.
+- User manual (zh/en) restructured into 10 chapters (start here → what it solves → getting started → how a project keeps its memory → how it is kept in check → long-running tasks → safety boundaries → daily maintenance → contributing → glossary), removing legacy continuous-work / run / contract / supervisor references.
+- Narrative unified from Codex to agent across docs (installation paths under `~/.codex` kept); Python requirement corrected to 3.9+; install redirect documented (`install.py --codex-home` / `TAU_LOOP_CODEX_HOME`).
+
 ## 0.4.0 - 2026-08-07
 
 - Consolidate into the single tau-loop repository; tt-workflow is frozen as historical archive.
