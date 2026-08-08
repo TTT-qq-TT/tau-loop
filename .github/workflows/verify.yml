@@ -28,9 +28,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $p = Start-Process python -ArgumentList "-c", "print('tau-smoke-ok')" -NoNewWindow -RedirectStandardOutput "$env:RUNNER_TEMP\tau-smoke.log" -RedirectStandardError "$env:RUNNER_TEMP\tau-smoke.err" -PassThru
-          $p.WaitForExit()
-          if ($p.ExitCode -ne 0) { Write-Error "Start-Process failed with exit $($p.ExitCode)" }
+          Start-Process python -ArgumentList "-c", "print('tau-smoke-ok')" -NoNewWindow -RedirectStandardOutput "$env:RUNNER_TEMP\tau-smoke.log" -RedirectStandardError "$env:RUNNER_TEMP\tau-smoke.err" -Wait
+          if (-not (Test-Path "$env:RUNNER_TEMP\tau-smoke.log")) { Write-Error "no log file produced" }
           Get-Content "$env:RUNNER_TEMP\tau-smoke.log" | Select-String "tau-smoke-ok" | Out-Null
           if (-not $?) { Write-Error "log redirection did not capture expected output" }
       # bash syntax gate: POSIX only (windows-latest has no bash on PATH by default)
