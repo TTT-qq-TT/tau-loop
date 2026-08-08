@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 - 2026-08-08
+
+- New capability: proactive window-switch — when the context window is nearly full or you want to separate discussion from execution, say "please hand off to the next window". The agent decides the intent, confirms spec/plan/memory are current, writes a handoff file (`.harness/handoffs/<id>.md`), and gives you a short launch line; a fresh window pastes it and continues seamlessly, no re-explaining.
+- Intent-first design: the agent must declare the current intent (with one line of why) in the handoff; the four reference intents (continue / decision-to-execution / fresh review / explore a branch) are defaults, not an exhaustive menu.
+- Two-layer handoff: a short prompt layer for you to copy (≤5 lines: intent, handoff path, next action) and a self-contained state layer in the handoff file (spec path, progress, evidence, constraints) the new window reads directly.
+- No orchestrator: the switch is executed by you (one copy-paste); the agent only prepares the handover. No daemon, no new command — `tau init` remains the only command.
+- Documented in `AGENTS.md` (Active Window-Switch chapter, mirrored in `assets/AGENTS.md`), user manual (zh/en) with the design philosophy (intent-first, minimal by design), README (zh/en/en-standalone) third "what it is especially good for" item, first-use glossary entry, and SKILL.md one-line guidance.
+- `.harness/handoffs/` added to `.gitignore` (dev-sandbox handover files, never published).
+
 ## 0.4.1 - 2026-08-08
 
 - README (zh/en) restructured around the product's essence: minimal (one `tau init`, no daemon / state machine / command surface), files-as-truth (records live in `.harness/`), and a thin mechanical backstop (hooks and check scripts).
