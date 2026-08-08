@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TauLoop — Lightweight workflow harness for coding agents</title>
+  <meta name="description" content="Loop + harness engineering for coding agents: a minimal, file-based workflow with verified turns and durable checkpoints. Works with Codex, Claude, and other coding agents.">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 720px; margin: 80px auto; padding: 0 24px; line-height: 1.6; color: #1f2328; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.4rem; }
+    h1 .tau { color: #8250df; }
+    .tagline { font-size: 1.1rem; color: #57606a; margin-bottom: 1.6rem; }
+    a { color: #0969da; }
+    code { background: #f6f8fa; padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; }
+    .cta { margin: 2rem 0; }
+    .cta a { display: inline-block; background: #1f883d; color: #fff; padding: 0.5em 1.2em; border-radius: 6px; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1><span class="tau">τ</span>-Loop · TauLoop</h1>
+  <p class="tagline">τ = 2π: one complete, evidence-backed turn of work — a lightweight workflow harness that keeps coding agents on track from spec to verified checkpoint.</p>
+  <p>You name the goal. The agent shapes the work, verifies it, and leaves the next step behind — in the project, not trapped in one chat.</p>
+  <div class="cta"><a href="https://github.com/TTT-qq-TT/tau-loop">View on GitHub</a></div>
+  <h2>Why TauLoop</h2>
+  <ul>
+    <li><strong>Minimal</strong> — one command (<code>tau init</code>), no daemon, no state machine, no command surface.</li>
+    <li><strong>Evidence-backed</strong> — spec → execute → verify → checkpoint, with files as the source of truth.</li>
+    <li><strong>Long-running tasks</strong> — the agent sleeps while the OS owns the process, then wakes to check.</li>
+    <li><strong>Cross-platform</strong> — macOS, Ubuntu, and Windows (native PowerShell, CI-verified).</li>
+  </ul>
+  <p>Works with <strong>Codex</strong>, <strong>Claude</strong>, and any coding agent that reads <code>AGENTS.md</code>.</p>
+</body>
+</html>
