@@ -100,7 +100,7 @@ goal -> checkable step -> implementation -> verification -> checkpoint -> next s
 | Project progress feels like a string of improvised conversations. | Each non-trivial task has scope, verification, and a closeout record. | You can inspect what is being done, why it is complete, and what is next. |
 | A growing context makes it risky to continue. | `memory`, `plan`, specs, and checkpoints carry only the facts needed next. | A new context is a reviewable handoff, not amnesia or a copied chat transcript. |
 
-TauLoop also has clear limits. It does not approve new permissions, spending, or irreversible actions for you. It does not call a live process, a heartbeat, or a long log a success. When verification fails, a dependency is missing, risk must expand, or product judgment is needed, it should stop at a human gate you can inspect.
+TauLoop also has clear limits. It does not approve new permissions, spending, or irreversible actions for you. It does not call a live process or a long log a success. When verification fails, a dependency is missing, risk must expand, or product judgment is needed, it should stop at a human gate you can inspect.
 
 ---
 
@@ -354,7 +354,7 @@ TauLoop's rule is: **verify, then continue; when uncertain, leave facts and stop
 
 ### Promises it must not make
 
-- Processes are owned by the operating system: a live process is not success, and neither is a heartbeat or a long log. Success is a unit of work that actually completed and passed its verification.
+- Processes are owned by the operating system: a live process is not success, and neither is a long log. Success is a unit of work that actually completed and passed its verification.
 - Long-task processes follow `nohup`/`screen` semantics: whether they survive a terminal close or reboot depends on that semantics. Records stay in logs and the plan, enough for conservative diagnosis.
 - A passing check proves only the part it verified; it does not mean Python, PyTorch, CUDA, a GPU, a simulator, or your production environment works. Verify those in the named target project.
 - A fresh context continues from facts in `memory`, `plan`, and specs; it does not inherit the old chat transcript. Nor is a fresh agent invocation guaranteed to create, display, or focus a visible desktop window.

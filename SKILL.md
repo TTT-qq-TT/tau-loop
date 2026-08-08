@@ -23,6 +23,7 @@ The user should not need to install anything by hand. When the user points at Ta
    ```bash
    python3 /tmp/tau-loop-install/install.py
    ```
+   If the target agent environment uses a different skill directory, pass `--codex-home <dir>` to the installer; `tau` reads the same location via the `TAU_LOOP_CODEX_HOME` environment variable.
 4. Confirm `tau --help` works (and `~/.codex/bin` is on PATH); optionally remove the temp clone:
    ```bash
    rm -rf /tmp/tau-loop-install

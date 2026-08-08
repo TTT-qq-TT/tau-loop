@@ -7,6 +7,8 @@
 - New standalone `README.zh.md`; the bilingual `README.md` keeps the in-page language switch, with `README.en.md` as the English standalone.
 - User manual (zh/en) restructured into 10 chapters (start here → what it solves → getting started → how a project keeps its memory → how it is kept in check → long-running tasks → safety boundaries → daily maintenance → contributing → glossary), removing legacy continuous-work / run / contract / supervisor references.
 - Narrative unified from Codex to agent across docs (installation paths under `~/.codex` kept); Python requirement corrected to 3.9+; install redirect documented (`install.py --codex-home` / `TAU_LOOP_CODEX_HOME`).
+- First-use guide (zh/en) deepened: five core terms (spec / plan / checkpoint / memory / long-running tasks) and the long-task "the agent sleeps" mechanism, staying lighter than the full manual.
+- SKILL.md install guidance documents the `--codex-home` / `TAU_LOOP_CODEX_HOME` redirect; heartbeat references removed across all reader docs for consistency.
 
 ## 0.4.0 - 2026-08-07
 
