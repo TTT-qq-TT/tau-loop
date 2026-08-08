@@ -35,7 +35,8 @@ jobs:
       # bash syntax gate: POSIX only (windows-latest has no bash on PATH by default)
       - run: bash -n bin/tau assets/hooks/*.sh
         if: runner.os != 'Windows'
-      - run: python -m py_compile install.py assets/tools/*.py assets/hooks/*.py
+      # Windows shell does not expand globs; compileall recurses instead.
+      - run: python -m compileall -q install.py assets
         if: runner.os == 'Windows'
       - run: python3 -m py_compile install.py assets/tools/*.py assets/hooks/*.py
         if: runner.os != 'Windows'
