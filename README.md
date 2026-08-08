@@ -103,7 +103,7 @@ It does not make the agent loop forever. It lets one unit of work complete a who
 
 ---
 
-## Two things it is especially good at
+## Three things it is especially good at
 
 ### 1. Move a project to xxx
 
@@ -124,6 +124,16 @@ When dependencies are downloading, an environment is being configured, or a buil
 Use TauLoop to configure the xxx environment.
 Split downloading, installation, and checks into serial stages; start the next stage only after the previous one verifies; do not frequently inspect download progress; stop at a checkpoint when everything is complete.
 ```
+
+### 3. Hand off to a fresh window when it is getting full
+
+When the context window is nearly full, or you want to separate discussion from execution, just say:
+
+```text
+Please hand off to the next window.
+```
+
+The agent packs up the handover (intent, progress, evidence, settled decisions), and gives you one short launch line. Paste it into a fresh window and it continues seamlessly — no re-explaining.
 
 ---
 
@@ -188,7 +198,7 @@ TauLoop is available under the [MIT License](LICENSE).
 </p>
 
 <p align="center">
-  <a href="#从一句话开始">从一句话开始</a> · <a href="#怎么用">怎么用</a> · <a href="#它凭什么让你放心">凭什么放心</a> · <a href="#两件它特别适合做的事">两个场景</a> · <a href="#它不会做什么">边界</a> · <a href="#手动安装">手动安装</a>
+  <a href="#从一句话开始">从一句话开始</a> · <a href="#怎么用">怎么用</a> · <a href="#它凭什么让你放心">凭什么放心</a> · <a href="#三件它特别适合做的事">三个场景</a> · <a href="#它不会做什么">边界</a> · <a href="#手动安装">手动安装</a>
 </p>
 
 <p align="center">
@@ -267,7 +277,7 @@ TauLoop 的用法只有一句话：**说清目标，然后让它把目标拆成�
 
 ---
 
-## 两件它特别适合做的事
+## 三件它特别适合做的事
 
 ### 1. 把一个项目推进到 xxx
 
@@ -288,6 +298,16 @@ TauLoop 的用法只有一句话：**说清目标，然后让它把目标拆成�
 用 TauLoop 帮我配置 xxx 环境。
 把下载、安装和检查拆成串行步骤；前一步验证通过才开始下一步；不要频繁查看下载进度；全部完成后停在检查点。
 ```
+
+### 3. 窗口快满时，换窗继续
+
+上下文窗口快满，或想把"讨论"和"执行"分开时，直接说：
+
+```text
+请 handoff 给下一个窗口。
+```
+
+agent 会整理好交接物（意图、进度、证据、已定决策），给你一句启动语；你开新窗口粘贴即可无缝继续，不用重新解释。
 
 ---
 

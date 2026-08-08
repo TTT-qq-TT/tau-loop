@@ -61,6 +61,7 @@ After init, the project's `AGENTS.md` owns the convention:
 - Read `.harness/memory.md` then `.harness/plan.md`, then the active task spec.
 - Non-trivial work starts as a spec (`.harness/specs/<slug>.md`) before code changes.
 - Long-running work follows the `Long-Running Tasks` section of `AGENTS.md`: plan as a spec, launch decoupled (`nohup`/`screen`), sleep in-session, wake and check the log and process, record evidence, then close out.
+- Window switch follows the `Active Window-Switch` section of `AGENTS.md`: on "please hand off to the next window", decide the intent, confirm spec/plan/memory are current, write `.harness/handoffs/<id>.md`, and give the user a short launch line (≤5 lines, intent + handoff path + next action).
 - Close out a task with `.harness/hooks/pre-closeout.sh`; `verify.sh` checks doc freshness, task state, and (in the source repo) that packaged assets cannot drift.
 
 ## Boundaries

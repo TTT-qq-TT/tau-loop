@@ -23,6 +23,7 @@ coverage.xml
 .harness/report.md
 .harness/failure-log.md
 .harness/capability-alignment.md
+.harness/handoffs/
 .harness/specs/*
 !.harness/specs/TEMPLATE.md
 !.harness/specs/README.md

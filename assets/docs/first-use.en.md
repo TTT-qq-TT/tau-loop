@@ -68,6 +68,7 @@ After launching, the agent hands the process to the operating system and then "g
 - **checkpoint**: the state left after a piece of work — what just happened, where the evidence is, what comes next. After a new window or the next day, the agent continues from here.
 - **memory**: facts the project still needs to remember — not a chat transcript, but conclusions, verified environment facts, and known risks.
 - **long-running tasks**: slow work like downloads and builds is owned by an OS-managed process; the agent wakes periodically to check (covered above), instead of occupying the chat window.
+- **handoff (window switch)**: when the context window is nearly full or you want to separate discussion from execution, say "please hand off to the next window". The agent writes a handover file and gives you one launch line; paste it into a fresh window and it continues seamlessly, no re-explaining.
 
 ## The project remembers
 

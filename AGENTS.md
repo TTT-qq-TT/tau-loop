@@ -73,6 +73,29 @@ Core pattern:
 
 The agent owns the loop: it decides when to sleep, what to check, and what to fix. There is no separate executor, daemon, or event system.
 
+## Active Window-Switch
+
+When the context window is nearly full, or you want to separate discussion from execution, offer:
+
+> "Please hand off to the next window."
+
+Then, in order:
+
+1. **Decide the intent** (required): state in one line what the next window should do, plus one line of why. Reference intents: *continue running* / *decision→execution separation* / *fresh review* / *explore a branch*. If none fit, decide yourself — intent is a declaration, not a menu.
+2. **Confirm the facts are current**: `spec` / `plan` / `memory` are maintained as usual; just make sure they reflect the latest state.
+3. **Write the handoff** to `.harness/handoffs/<id>.md`, carrying only:
+   - `intent` + one-line reason
+   - `spec_path` — the current contract
+   - `progress` — completed stages, current stage, artifacts
+   - `evidence` — verified receipts
+   - `constraints` — decisions, allowed_files, next_action
+   - Never chat history.
+4. **Produce the prompt** for the user to copy: ≤5 lines, no role-play boilerplate. Three elements: intent in one line, handoff path, one action line derived from the intent.
+
+The user opens a fresh session and pastes the prompt. The new window reads AGENTS.md, then the handoff, verifies its listed evidence before acting, and follows the intent — no further explanation needed.
+
+Hand off at semantic boundaries (stage done, spec switch, decision frozen). Do not hand off for short tasks or when the window is not full — official compact is enough there.
+
 ## Checkpoint Rule
 
 If the current thread has compacted once and is growing again, checkpoint and start a fresh thread instead of relying on another compaction.

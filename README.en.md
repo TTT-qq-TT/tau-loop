@@ -101,7 +101,7 @@ It does not make the agent loop forever. It lets one unit of work complete a who
 
 ---
 
-## Two things it is especially good at
+## Three things it is especially good at
 
 ### 1. Move a project to xxx
 
@@ -122,6 +122,16 @@ When dependencies are downloading, an environment is being configured, or a buil
 Use TauLoop to configure the xxx environment.
 Split downloading, installation, and checks into serial stages; start the next stage only after the previous one verifies; do not frequently inspect download progress; stop at a checkpoint when everything is complete.
 ```
+
+### 3. Hand off to a fresh window when it is getting full
+
+When the context window is nearly full, or you want to separate discussion from execution, just say:
+
+```text
+Please hand off to the next window.
+```
+
+The agent packs up the handover (intent, progress, evidence, settled decisions), and gives you one short launch line. Paste it into a fresh window and it continues seamlessly — no re-explaining.
 
 ---
 

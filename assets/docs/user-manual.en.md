@@ -334,6 +334,24 @@ Record the PID, log path, and expected artifacts in `.harness/plan.md`. The agen
 
 When you finish a piece of work or start an independent new spec, first update `.harness/memory.md` (current facts) and `.harness/plan.md` (next step), and checkpoint the spec. A new context continues from those files; it does not inherit the old chat transcript. It still verifies the working tree and existing evidence first.
 
+### Switch proactively: hand off to the next window in one sentence
+
+When the context window is nearly full, or you want to separate discussion from execution, just say:
+
+> Please hand off to the next window.
+
+The agent does four things:
+
+1. **Decide the intent** — think through why this switch happens: keep moving, hand a settled plan to execution, take a fresh review, or explore another path. It must write down an explicit intent (and one line of why); if it cannot, it should not switch. The listed intents are references, not an exhaustive menu — the agent decides per situation.
+2. **Confirm the facts are current** — `spec` / `plan` / `memory` stay up to date (maintained as part of normal work).
+3. **Write a handoff file** (`.harness/handoffs/<id>.md`) — carrying only intent, the current contract, progress, verified evidence, and constraints (decisions / allowed files / next action), **never the chat transcript**.
+4. **Give you a short launch line** — a few lines at most, saying three things only: the intent in one line, the handoff path, and the next action. No role-play boilerplate, no repeated business content (that lives in the file).
+
+All you do: open a fresh window and paste that line. The new window reads `AGENTS.md` first, then the handoff, verifies the listed evidence, and acts on the intent — **no further explanation needed**.
+
+> [!NOTE]
+> **Design philosophy: intent-first, minimal by design.** Scenarios are not enumerated — the agent judges what the current intent is and declares it; the template is a default, not a boundary. No orchestrator, daemon, or new command — you perform the switch (one copy-paste), and the agent only prepares the handover. When the window is far from full or the task is short, no switch is needed; just continue.
+
 > [!IMPORTANT]
 > Long-task processes are owned by the operating system. Whether they survive a terminal close or reboot follows nohup/screen semantics; records stay in logs and the plan, enough for conservative diagnosis. It also does not promise that a fresh agent invocation appears in or focuses a visible desktop window.
 
