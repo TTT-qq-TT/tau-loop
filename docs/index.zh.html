@@ -6,50 +6,48 @@
   <title>TauLoop —— 面向 coding agent 的轻量工作流 harness</title>
   <meta name="description" content="面向 coding agent 的 loop + harness engineering：极简、文件即真相、证据驱动的完整工作轮次与持久检查点。支持 Codex、Claude 等 agent，Windows 原生可用。">
   <style>
-    :root { --ink: #1f2328; --muted: #57606a; --line: #d9dde3; --accent: #8250df; }
+    :root { --bg: #0d1117; --panel: #161b22; --line: #21262d; --ink: #e6edf3; --muted: #8b949e; --green: #3fb950; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+      background: var(--bg);
       color: var(--ink);
       line-height: 1.7;
       min-height: 100vh;
-      /* faint graph-paper grid, barely there */
-      background-image:
-        linear-gradient(to right, rgba(31, 35, 40, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(31, 35, 40, 0.03) 1px, transparent 1px);
-      background-size: 26px 26px;
     }
-    .wrap { max-width: 640px; margin: 0 auto; padding: 88px 24px 40px; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 48px; }
     .lang { position: fixed; top: 18px; right: 22px; font-size: 0.85rem; color: var(--muted); }
-    .lang a { color: var(--accent); text-decoration: none; }
+    .lang a { color: var(--green); text-decoration: none; }
     .lang a:hover { text-decoration: underline; }
-    .mark { display: block; margin-bottom: 22px; color: var(--accent); }
+    .head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+    .head img { width: 52px; height: 52px; }
     h1 { font-size: 1.7rem; font-weight: 650; letter-spacing: -0.01em; }
-    h1 .tau { color: var(--accent); }
-    .tagline { font-size: 1.05rem; color: var(--muted); margin-top: 10px; }
-    .rule { border: 0; border-top: 1px solid var(--line); margin: 26px 0 24px; }
-    h2 { font-size: 1.02rem; font-weight: 600; margin-bottom: 12px; }
+    h1 .tau { color: var(--green); }
+    .tagline { font-size: 1.05rem; color: var(--muted); margin-bottom: 24px; }
+    .cover { width: 100%; border: 1px solid var(--line); border-radius: 6px; display: block; }
+    .rule { border: 0; border-top: 1px solid var(--line); margin: 28px 0 24px; }
+    h2 { font-size: 1.02rem; font-weight: 600; margin-bottom: 12px; color: var(--ink); }
     ul { list-style: none; }
-    li { padding: 5px 0 5px 18px; position: relative; color: #32383f; }
-    li::before { content: ""; position: absolute; left: 0; top: 0.85em; width: 6px; height: 6px; border: 1px solid var(--accent); border-radius: 50%; }
-    code { background: rgba(31, 35, 40, 0.05); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
-    a { color: var(--accent); }
+    li { padding: 5px 0 5px 18px; position: relative; color: #c9d1d9; }
+    li::before { content: ""; position: absolute; left: 0; top: 0.85em; width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+    code { background: var(--panel); border: 1px solid var(--line); padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
+    a { color: var(--green); }
     .cta { margin: 26px 0 30px; }
-    .cta a { display: inline-block; border: 1px solid var(--ink); padding: 0.45em 1.1em; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.95rem; color: var(--ink); margin-right: 10px; }
-    .cta a.primary { background: var(--ink); color: #fff; }
+    .cta a { display: inline-block; border: 1px solid var(--green); padding: 0.45em 1.1em; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.95rem; color: var(--green); margin-right: 10px; }
+    .cta a.primary { background: var(--green); color: #0d1117; }
     footer { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 14px; font-size: 0.8rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
-    footer .tau-print { font-family: "Times New Roman", Georgia, serif; font-style: italic; }
+    footer .tau-print { font-family: "Times New Roman", Georgia, serif; font-style: italic; color: var(--green); }
   </style>
 </head>
 <body>
   <div class="lang"><a href="index.html">English</a></div>
   <div class="wrap">
-    <svg class="mark" width="52" height="52" viewBox="0 0 56 56" fill="none" stroke="currentColor" aria-hidden="true">
-      <circle cx="28" cy="28" r="26" stroke-width="1"/>
-      <path d="M19 19h18M28 19v19" stroke-width="1.6"/>
-    </svg>
-    <h1><span class="tau">τ</span>-Loop · TauLoop</h1>
+    <div class="head">
+      <img src="tauloop-mark.png" alt="" width="52" height="52">
+      <h1><span class="tau">τ</span>-Loop · TauLoop</h1>
+    </div>
     <p class="tagline">τ = 2π：一个完整、有证据支撑的工作轮次——一个轻量 workflow harness，让 coding agent 从 spec 一路走到验证过的 checkpoint。</p>
+    <img class="cover" src="tauloop-readme-cover.png" alt="TauLoop：一整圈，继续向前">
     <hr class="rule">
     <p>你定目标。agent 拆解工作、验证结果、把下一步留在项目里——而不是困在某一段聊天里。</p>
     <div class="cta">
