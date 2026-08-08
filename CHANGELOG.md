@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 - 2026-08-09
+
+- Windows support (CI-verified): tau-loop now runs on Windows for agents (e.g. the Codex desktop app) — hooks do not error and long tasks have a documented replacement. Windows users never touch a terminal: they work in natural language through a desktop client and the agent initializes tau-loop (pure Python path); if Python is missing, the agent installs it (e.g. `winget install Python.Python.3.12`).
+- Dual-entry hooks: every hook ships a bash version (`.harness/hooks/*.sh`, unchanged for macOS/Linux) and a shell-agnostic Python version (`*.py`, invoked via `python`/`py -3` on Windows; internally uses `sys.executable` so no command-name dependency). `verify.sh` mirror checks now cover the `.py` entries too.
+- Long-task convention gains a native Windows replacement: `Start-Process -NoNewWindow -RedirectStandardOutput` (documented in AGENTS.md and user manual zh/en); `screen` has no Windows equivalent — either drop re-attach or run under WSL/Git Bash.
+- Documentation: README badges, user manual (zh/en), and CONTRIBUTING now declare macOS / Ubuntu / Windows; platform-specific command names documented (`python3` on POSIX, `python`/`py -3` on Windows — the Windows `python3` Store alias stub pitfall noted).
+- CI: `verify.yml` matrix adds `windows-latest` (× 3.9/3.12), with platform-aware steps (unittest via `python`, `compileall` instead of glob `py_compile`, `bash -n` POSIX-only) plus a PowerShell long-task smoke test that actually starts a process and asserts log redirection.
+- Tests: platform branches for the packaged `tau` entry and the verify hook; mirror-consistency list extended to `.py` hooks; the cw-brand asset check now matches brand forms instead of the bare substring (avoids false positives on `Path.cwd()`).
+
 ## 0.5.0 - 2026-08-08
 
 - New capability: proactive window-switch — when the context window is nearly full or you want to separate discussion from execution, say "please hand off to the next window". The agent decides the intent, confirms spec/plan/memory are current, writes a handoff file (`.harness/handoffs/<id>.md`), and gives you a short launch line; a fresh window pastes it and continues seamlessly, no re-explaining.
