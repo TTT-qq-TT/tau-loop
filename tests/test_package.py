@@ -95,7 +95,11 @@ class PackageLifecycleTests(unittest.TestCase):
             command = codex_home / "bin" / "tau"
 
             help_text = run(tau_command(codex_home) + ["--help"]).stdout
-            self.assertIn("tau init", help_text)
+            if IS_WINDOWS:
+                # direct project_lifecycle.py path: argparse help shows the single choice
+                self.assertIn("{init}", help_text)
+            else:
+                self.assertIn("tau init", help_text)
 
             for retired in ("adopt", "upgrade", "uninstall", "run", "run-status", "cancel", "recover",
                             "handoff", "agent-run", "loop", "loop-status", "loop-recover", "loop-cancel",
