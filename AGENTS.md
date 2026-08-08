@@ -36,11 +36,11 @@ Read `.harness/report.md` only when the task needs prior experiments, audit trai
 
 - Keep threads scoped to one subtask.
 - For non-trivial work, create or update a task spec before code changes.
-- For non-trivial work, run `.harness/hooks/pre-task.sh` after shaping the task when hook entrypoints are installed.
+- For non-trivial work, run the pre-task hook after shaping the task when hook entrypoints are installed: `.harness/hooks/pre-task.sh` on bash hosts, `.harness/hooks/pre-task.py` (via `python`/`py -3`) on Windows.
 - Treat `Allowed files` in the spec as the current change boundary.
 - If scope changes, update the spec before continuing.
 - Record verification in the spec before marking the task done.
-- Before marking a non-trivial task done, run `.harness/hooks/pre-closeout.sh` when hook entrypoints are installed.
+- Before marking a non-trivial task done, run the pre-closeout hook when hook entrypoints are installed: `.harness/hooks/pre-closeout.sh` on bash hosts, `.harness/hooks/pre-closeout.py` (via `python`/`py -3`) on Windows.
 - Treat repeated compaction as a warning sign, not normal workflow.
 - Before ending a thread or switching scope, update `.harness/memory.md` and `.harness/plan.md`.
 - Update the active spec before ending a thread if task-local state changed.
@@ -63,13 +63,18 @@ Core pattern:
 2. **Launch decoupled**: start the long command so it is owned by the OS, not the session:
    - `nohup bash scripts/stage.sh > logs/stage.log 2>&1 &`
    - or `screen -dmS stage bash scripts/stage.sh` when you need to re-attach interactively.
+   - On native Windows (PowerShell), use `Start-Process` instead:
+     ```powershell
+     Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStandardOutput logs/stage.log -RedirectStandardError logs/stage.err -PassThru
+     ```
+     `screen` has no native Windows equivalent — either drop re-attach or run the stage under WSL/Git Bash.
    - Record the PID, log path, and expected artifacts in `.harness/plan.md`.
 3. **Sleep**: wait in-session with `sleep` (verified zero-output, near-zero token cost). Do not poll in a tight loop; a coarse interval (e.g. 30-60 min) is fine.
 4. **Wake and check**: read the log tail, check the process (`ps -p <pid>`), and compare artifacts. All checks are plain foreground commands in the session.
    - Normal progress → record a short status note and sleep again.
    - Failure → read the log, fix the stage script, relaunch decoupled, and return to step 3.
 5. **Verify completion**: run the stage self-check and confirm expected artifacts exist. Record evidence (checksums, test output) in `.harness/plan.md` and the spec.
-6. **Close out**: run `.harness/hooks/pre-closeout.sh`; the hook checks that the spec is complete and that declared artifacts are present.
+6. **Close out**: run the pre-closeout hook (`.harness/hooks/pre-closeout.sh` on bash hosts, `pre-closeout.py` on Windows); the hook checks that the spec is complete and that declared artifacts are present.
 
 The agent owns the loop: it decides when to sleep, what to check, and what to fix. There is no separate executor, daemon, or event system.
 

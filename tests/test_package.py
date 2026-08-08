@@ -12,6 +12,8 @@ from typing import Dict, List, Optional
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLER = ROOT / "install.py"
 
+IS_WINDOWS = sys.platform == "win32"
+
 
 def run(command: List[str], *, env: Optional[Dict[str, str]] = None, cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
     result = subprocess.run(command, check=False, capture_output=True, text=True, env=env, cwd=cwd)
@@ -22,6 +24,20 @@ def run(command: List[str], *, env: Optional[Dict[str, str]] = None, cwd: Option
 
 def tau_env(codex_home: Path) -> Dict[str, str]:
     return dict(os.environ, TAU_LOOP_CODEX_HOME=str(codex_home))
+
+
+def tau_command(codex_home: Path) -> List[str]:
+    """The tau init entry: the bash launcher on POSIX, direct Python on Windows."""
+    if IS_WINDOWS:
+        return [sys.executable, str(codex_home / "skills" / "tau-loop" / "assets" / "tools" / "project_lifecycle.py")]
+    return [str(codex_home / "bin" / "tau")]
+
+
+def verify_command(project: Path) -> List[str]:
+    """The packaged verify hook: bash entry on POSIX, Python entry on Windows."""
+    if IS_WINDOWS:
+        return [sys.executable, str(project / ".harness" / "hooks" / "verify.py")]
+    return ["bash", str(project / ".harness" / "hooks" / "verify.sh")]
 
 
 class PackageLifecycleTests(unittest.TestCase):
@@ -38,16 +54,20 @@ class PackageLifecycleTests(unittest.TestCase):
             self.assertTrue((skill_root / "SKILL.md").is_file())
             self.assertTrue((skill_root / "assets" / "AGENTS.md").is_file())
             self.assertTrue((skill_root / "assets" / "hooks" / "verify.sh").is_file())
+            self.assertTrue((skill_root / "assets" / "hooks" / "verify.py").is_file())
             self.assertTrue((skill_root / "assets" / "tools" / "project_lifecycle.py").is_file())
             self.assertTrue(command.is_file())
 
-            run([str(command), "init", "--root", str(project)], env=tau_env(codex_home))
+            run(tau_command(codex_home) + ["init", "--root", str(project)], env=tau_env(codex_home))
             self.assertTrue((project / "AGENTS.md").is_file())
             self.assertTrue((project / ".harness" / "memory.md").is_file())
             self.assertTrue((project / ".harness" / "plan.md").is_file())
             self.assertTrue((project / ".harness" / "hooks" / "pre-task.sh").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "pre-task.py").is_file())
             self.assertTrue((project / ".harness" / "hooks" / "pre-closeout.sh").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "pre-closeout.py").is_file())
             self.assertTrue((project / ".harness" / "hooks" / "verify.sh").is_file())
+            self.assertTrue((project / ".harness" / "hooks" / "verify.py").is_file())
             self.assertTrue((project / ".harness" / "tools" / "check_doc_freshness.py").is_file())
             self.assertTrue((project / ".harness" / "tools" / "check_task_state.py").is_file())
             self.assertTrue((project / ".harness" / "specs" / "TEMPLATE.md").is_file())
@@ -60,7 +80,7 @@ class PackageLifecycleTests(unittest.TestCase):
             self.assertEqual(cw_files, [])
 
             # the packaged verify hook passes on a freshly initialized project
-            run(["bash", str(project / ".harness" / "hooks" / "verify.sh"), str(project)])
+            run(verify_command(project) + [str(project)])
 
             # uninstall roundtrip
             run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--uninstall"])
@@ -74,16 +94,19 @@ class PackageLifecycleTests(unittest.TestCase):
             run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--quiet"])
             command = codex_home / "bin" / "tau"
 
-            help_text = run([str(command), "--help"]).stdout
+            help_text = run(tau_command(codex_home) + ["--help"]).stdout
             self.assertIn("tau init", help_text)
 
             for retired in ("adopt", "upgrade", "uninstall", "run", "run-status", "cancel", "recover",
                             "handoff", "agent-run", "loop", "loop-status", "loop-recover", "loop-cancel",
                             "state", "status", "doctor", "verify"):
                 with self.subTest(command=retired):
-                    result = subprocess.run([str(command), retired], check=False, capture_output=True, text=True)
+                    result = subprocess.run(tau_command(codex_home) + [retired], check=False, capture_output=True, text=True)
                     self.assertNotEqual(result.returncode, 0)
-                    self.assertIn("Unknown command", result.stderr)
+                    if IS_WINDOWS:
+                        self.assertIn("invalid choice", result.stderr)
+                    else:
+                        self.assertIn("Unknown command", result.stderr)
 
     def test_init_preserves_existing_user_files(self) -> None:
         with tempfile.TemporaryDirectory(prefix="tau-loop-preserve-") as temporary:
@@ -98,7 +121,7 @@ class PackageLifecycleTests(unittest.TestCase):
             run([sys.executable, str(INSTALLER), "--codex-home", str(codex_home), "--quiet"])
             command = codex_home / "bin" / "tau"
 
-            run([str(command), "init", "--root", str(project)], env=tau_env(codex_home))
+            run(tau_command(codex_home) + ["init", "--root", str(project)], env=tau_env(codex_home))
 
             self.assertEqual(agents.read_text(encoding="utf-8"), "# Existing Rules\n\nKeep this file.\n")
             self.assertEqual(memory.read_text(encoding="utf-8"), "# Existing Memory\n")
@@ -106,6 +129,10 @@ class PackageLifecycleTests(unittest.TestCase):
 
 class PackagedAssetTests(unittest.TestCase):
     def test_assets_have_no_cw_references(self) -> None:
+        import re
+        # Match the retired cw brand (codewhale / cw_* commands) without false
+        # positives on legitimate substrings such as Path.cwd() or workflow.
+        brand = re.compile(r"(?:^|[^a-z])cw(?:$|[^a-z])|codewhale")
         offenders: List[Path] = []
         for path in sorted((ROOT / "assets").rglob("*")):
             if not path.is_file() or "__pycache__" in path.parts:
@@ -113,7 +140,7 @@ class PackagedAssetTests(unittest.TestCase):
             if path.name.startswith(("cw", "cw_")) or "cw" in path.stem.lower():
                 offenders.append(path)
                 continue
-            if "cw" in path.read_text(encoding="utf-8", errors="ignore").lower():
+            if brand.search(path.read_text(encoding="utf-8", errors="ignore").lower()):
                 offenders.append(path)
         self.assertEqual(offenders, [])
 
@@ -122,8 +149,11 @@ class PackagedAssetTests(unittest.TestCase):
             "tools/check_doc_freshness.py",
             "tools/check_task_state.py",
             "hooks/pre-task.sh",
+            "hooks/pre-task.py",
             "hooks/pre-closeout.sh",
+            "hooks/pre-closeout.py",
             "hooks/verify.sh",
+            "hooks/verify.py",
         ):
             with self.subTest(rel=rel):
                 harness = ROOT / ".harness" / rel

@@ -45,7 +45,7 @@ Show me only the plan and the definition of done for each part. Wait for my appr
 
 Only run these commands when the agent asks you to install manually, or when you are troubleshooting:
 
-TauLoop requires an agent and Python 3.9+ and currently supports macOS and Ubuntu (it is bash-dependent for now; Windows adaptation is planned, and handy users can make it work themselves). A Git worktree is required only for bounded repair.
+TauLoop requires an agent and Python 3.9+ and supports macOS, Ubuntu, and Windows. On Windows you never touch a terminal: work in natural language through a desktop client (e.g. the Codex app) and let the agent initialize TauLoop for you; if Python is missing, just ask the agent to install it (e.g. `winget install Python.Python.3.12`) before continuing. A Git worktree is required only for bounded repair.
 
 ```bash
 git clone https://github.com/TTT-qq-TT/tau-loop.git
@@ -328,7 +328,15 @@ nohup bash scripts/stage.sh > logs/stage.log 2>&1 &
 # or screen -dmS stage bash scripts/stage.sh
 ```
 
-Record the PID, log path, and expected artifacts in `.harness/plan.md`. The agent sleeps in-session and wakes periodically to check progress with `ps -p <pid>` and the log tail; on failure it fixes the script and re-runs. There is no extra command surface.
+On native Windows (PowerShell), use `Start-Process` instead:
+
+```powershell
+Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStandardOutput logs/stage.log -RedirectStandardError logs/stage.err -PassThru
+```
+
+`screen` has no native Windows equivalent — either drop re-attach or run the stage under WSL/Git Bash.
+
+Record the PID, log path, and expected artifacts in `.harness/plan.md`. The agent sleeps in-session and wakes periodically to check progress with `ps -p <pid>` (or `Get-Process` on Windows) and the log tail; on failure it fixes the script and re-runs. There is no extra command surface.
 
 ### Switch context at a semantic checkpoint
 
@@ -444,7 +452,7 @@ This removes only the files the installer placed (the skill and the `tau` comman
 
 ### What contributions should preserve
 
-TauLoop stays deliberately light: Python 3.9+, standard library first, and portable across macOS and Ubuntu. Keep the complete-turn boundary intact: goal, spec, execute, verify, checkpoint, then review or move on.
+TauLoop stays deliberately light: Python 3.9+, standard library first, and portable across macOS, Ubuntu, and Windows. Keep the complete-turn boundary intact: goal, spec, execute, verify, checkpoint, then review or move on.
 
 Do not turn a small change into a daemon, dashboard, or unverified desktop automation. A small feature should not quietly become an opaque execution platform.
 

@@ -45,7 +45,7 @@ agent 会安装 TauLoop、判断项目是新项目还是已有项目、创建必
 
 只有在 agent 请你手动安装，或你需要排错时，才需要执行下面三行：
 
-需要 agent 与 Python 3.9+；当前支持 macOS 和 Ubuntu（目前还有 bash 依赖，Windows 后续适配！动手能力强的小伙伴也可以自己搞定）。只有使用受限修复时，项目才需要在 Git 工作树中。
+需要 agent 与 Python 3.9+；支持 macOS、Ubuntu 与 Windows。Windows 用户全程不用开终端：在 Codex 桌面端等客户端里用自然语言让 agent 初始化 tau-loop 即可；若机器上还没有 Python，直接让 agent 用 `winget install Python.Python.3.12` 装好再继续。只有使用受限修复时，项目才需要在 Git 工作树中。
 
 ```bash
 git clone https://github.com/TTT-qq-TT/tau-loop.git
@@ -339,7 +339,15 @@ nohup bash scripts/stage.sh > logs/stage.log 2>&1 &
 # 或 screen -dmS stage bash scripts/stage.sh
 ```
 
-在 `.harness/plan.md` 记录 PID、日志路径与预期产物。agent 在会话里 sleep，周期性醒来用 `ps -p <pid>` 和日志尾部检查进度；失败则修脚本重跑。没有额外的命令面。
+原生 Windows（PowerShell）用 `Start-Process` 替代：
+
+```powershell
+Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStandardOutput logs/stage.log -RedirectStandardError logs/stage.err -PassThru
+```
+
+`screen` 在 Windows 没有等价物——要么放弃 re-attach，要么在 WSL/Git Bash 里跑。
+
+在 `.harness/plan.md` 记录 PID、日志路径与预期产物。agent 在会话里 sleep，周期性醒来用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查进度；失败则修脚本重跑。没有额外的命令面。
 
 ### 在语义检查点换一个上下文
 
@@ -457,7 +465,7 @@ python3 install.py --uninstall
 
 ### 贡献时保持什么不变
 
-TauLoop 希望保持轻量：Python 3.9+、标准库优先、macOS 与 Ubuntu 可移植。一次完整 turn 的边界也应保持：目标、spec、执行、验证、checkpoint，再 review 或进入下一段。
+TauLoop 希望保持轻量：Python 3.9+、标准库优先、macOS / Ubuntu / Windows 可移植。一次完整 turn 的边界也应保持：目标、spec、执行、验证、checkpoint，再 review 或进入下一段。
 
 贡献新能力时，请避免顺手把它变成 daemon、dashboard 或未经验证的桌面自动化。一个小功能不应悄悄扩张为难以审计的运行平台。
 

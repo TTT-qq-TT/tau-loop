@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
         python-version: ["3.9", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -17,7 +17,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      # Windows registers only `python` (no `python3`); POSIX keeps `python3`.
+      - run: python -m unittest discover -s tests -v
+        if: runner.os == 'Windows'
       - run: python3 -m unittest discover -s tests -v
+        if: runner.os != 'Windows'
+      # Smoke-test the documented long-task launch on native Windows (PowerShell):
+      # Start-Process with log redirection must actually start and capture output.
+      - name: PowerShell long-task smoke
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $p = Start-Process python -ArgumentList "-c", "print('tau-smoke-ok')" -NoNewWindow -RedirectStandardOutput "$env:RUNNER_TEMP\tau-smoke.log" -RedirectStandardError "$env:RUNNER_TEMP\tau-smoke.err" -PassThru
+          $p.WaitForExit()
+          if ($p.ExitCode -ne 0) { Write-Error "Start-Process failed with exit $($p.ExitCode)" }
+          Get-Content "$env:RUNNER_TEMP\tau-smoke.log" | Select-String "tau-smoke-ok" | Out-Null
+          if (-not $?) { Write-Error "log redirection did not capture expected output" }
+      # bash syntax gate: POSIX only (windows-latest has no bash on PATH by default)
       - run: bash -n bin/tau assets/hooks/*.sh
-      - run: python3 -m py_compile install.py assets/tools/*.py
+        if: runner.os != 'Windows'
+      - run: python -m py_compile install.py assets/tools/*.py assets/hooks/*.py
+        if: runner.os == 'Windows'
+      - run: python3 -m py_compile install.py assets/tools/*.py assets/hooks/*.py
+        if: runner.os != 'Windows'
+      - run: python assets/tools/check_markdown_links.py
+        if: runner.os == 'Windows'
       - run: python3 assets/tools/check_markdown_links.py
+        if: runner.os != 'Windows'

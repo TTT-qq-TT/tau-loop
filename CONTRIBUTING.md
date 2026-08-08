@@ -2,7 +2,7 @@
 
 ## Scope
 
-Keep the core portable: Python 3.8+, standard library first, macOS and Ubuntu. Preserve TauLoop's complete-turn boundary: specify, run, verify, checkpoint, then review or hand off. Do not add a daemon, a dashboard, or undocumented Codex Desktop automation as a side effect of a small change.
+Keep the core portable: Python 3.9+, standard library first, macOS, Ubuntu, and Windows. On Windows the entry points are the `.py` hooks (`pre-task.py` / `pre-closeout.py` / `verify.py`) while bash hosts keep the `.sh` versions; never remove the bash entries for POSIX. Preserve TauLoop's complete-turn boundary: specify, run, verify, checkpoint, then review or hand off. Do not add a daemon, a dashboard, or undocumented Codex Desktop automation as a side effect of a small change.
 
 ## Changes
 

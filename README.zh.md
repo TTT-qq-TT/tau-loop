@@ -14,7 +14,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F4C430?style=flat-square" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.9 or later">
   <img src="https://img.shields.io/badge/agents-Codex%20%C2%B7%20Claude%20%C2%B7%20CodeWhale-10A37F?style=flat-square" alt="适用于 Codex、Claude 与 CodeWhale 的 agent skill">
-  <img src="https://img.shields.io/badge/macOS%20%2B%20Ubuntu-supported-4C8BF5?style=flat-square" alt="macOS and Ubuntu supported">
+  <img src="https://img.shields.io/badge/macOS%20%C2%B7%20Ubuntu%20%C2%B7%20Windows-supported-4C8BF5?style=flat-square" alt="macOS, Ubuntu 与 Windows 受支持">
 </p>
 
 <p align="center">
