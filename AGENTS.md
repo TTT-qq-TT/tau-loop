@@ -55,7 +55,7 @@ Read `.harness/report.md` only when the task needs prior experiments, audit trai
 
 ## Long-Running Tasks
 
-Long-running work (large downloads, builds, data assembly) is done by the agent directly in the session, with the actual work process decoupled from the agent session so it survives sleep and window changes.
+Long-running work (large downloads, builds, data assembly, model training) is **owned by the OS**, not the agent session. The agent decouples the process (`nohup`/`screen`/`Start-Process`), records state in `.harness/plan.md`, and then either checks in manually or — for unattended work — hands the watch to a **shift agent**: a system timer periodically launches a short headless inspection round that reads state, checks progress, fixes what it safely can, and writes the outcome back to the state file.
 
 Core pattern:
 
@@ -68,15 +68,23 @@ Core pattern:
      Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStandardOutput logs/stage.log -RedirectStandardError logs/stage.err -PassThru
      ```
      `screen` has no native Windows equivalent — either drop re-attach or run the stage under WSL/Git Bash.
-   - Record the PID, log path, and expected artifacts in `.harness/plan.md`.
-3. **Sleep**: wait in-session with `sleep` (verified zero-output, near-zero token cost). Do not poll in a tight loop; a coarse interval (e.g. 30-60 min) is fine.
-4. **Wake and check**: read the log tail, check the process (`ps -p <pid>`), and compare artifacts. All checks are plain foreground commands in the session.
-   - Normal progress → record a short status note and sleep again.
-   - Failure → read the log, fix the stage script, relaunch decoupled, and return to step 3.
-5. **Verify completion**: run the stage self-check and confirm expected artifacts exist. Record evidence (checksums, test output) in `.harness/plan.md` and the spec.
-6. **Close out**: run the pre-closeout hook (`.harness/hooks/pre-closeout.sh` on bash hosts, `pre-closeout.py` on Windows); the hook checks that the spec is complete and that declared artifacts are present.
+   - Record the PID, log path, and expected artifacts in `.harness/plan.md` (the shift-status section, fields per `.harness/templates/shift-agent.md`).
 
-The agent owns the loop: it decides when to sleep, what to check, and what to fix. There is no separate executor, daemon, or event system.
+### Shift Mode (unattended, recommended for hours-long work)
+
+When no one will watch the task (overnight training, long builds), set up a periodic inspection instead of sleeping in-session:
+
+1. **Write the shift-status section** in `.harness/plan.md` (`task`, `cmd`, `process`, `log`, `artifact`, `acceptance`, `pid`, `status`, `next_check_at`; format per `.harness/templates/shift-agent.md`).
+2. **Arm a system timer** (OS-level; survives crashes by design — each launch is a fresh process):
+   - cron, headless single-shot mode: `*/15 * * * * cd /path/to/project && <agent> exec --prompt .harness/templates/shift-agent.md`
+   - examples: `claude -p "$(cat .harness/templates/shift-agent.md)"` / `codex exec --prompt-file .harness/templates/shift-agent.md`
+   - Windows: Task Scheduler launching the same command. Keep the machine awake while unattended.
+3. **Each inspection round** (a fresh headless agent): reads the shift-status section → checks process/log/artifacts → decides (continue / fix & relaunch / research & fix / finish & wrap up) → updates the section → exits. The template constrains behavior: read-only by default, no blind retries, backup + self-check before relaunch, hand over with a case file only when a real decision is needed.
+4. **Check results later**: read the shift-status section — `done` (acceptance summary), `need_decision` (case notes), `fixed` (repair history), or `running` (still going). Never trust a running process as success; completion requires verified artifacts.
+
+Manual check-in works the same way when someone is watching: `ps -p <pid>`, log tail, artifact compare — all plain foreground commands — then record a short status note.
+
+The agent owns the loop: it decides what to check, what to fix, and when to stop. There is no separate executor, daemon, or event system — the timer is the OS's, and the state file is the truth. (The handoff mechanics mirror `Active Window-Switch` below: write state, exit, next round resumes from the file.)
 
 ## Active Window-Switch
 

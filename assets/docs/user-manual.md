@@ -296,10 +296,10 @@ TauLoop 的规则不只是一份建议。项目里有一套小的机械检查（
 ```text
 写 spec（阶段命令、自检、预期产物）
   -> nohup/screen 解耦启动，记录 PID 与日志路径
-  -> agent 在会话里 sleep（粗粒度间隔）
-  -> 醒来：读日志尾部、查进程、比对产物
+  -> 写值班状态段，配系统定时器（cron）
+  -> 每个巡检回合：读状态、查日志尾部与进程、比对产物
   -> 通过：记录证据，进入下一阶段
-  -> 失败：读日志、修脚本、重新解耦启动
+  -> 失败：读日志、安全修复、重新解耦启动
 ```
 
 因此，下载正在进行不是成功，进程还活着也不是成功。无论中间是否发生修复，成功始终来自一份实际完成并通过验证的证据。
@@ -347,13 +347,13 @@ Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStan
 
 `screen` 在 Windows 没有等价物——要么放弃 re-attach，要么在 WSL/Git Bash 里跑。
 
-在 `.harness/plan.md` 记录 PID、日志路径与预期产物。agent 在会话里 sleep，周期性醒来用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查进度；失败则修脚本重跑。没有额外的命令面。
+在 `.harness/plan.md` 记录 PID、日志路径与预期产物，并写「值班状态」段。无人值守时配一个系统定时器（如 cron 每 15 分钟）拉起巡检回合（模板见 `.harness/templates/shift-agent.md`）：读状态、用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查、安全修复、更新状态后退出。有人盯着时也可以手动 `ps -p <pid>` + 日志尾部检查。没有额外的命令面。
 
 ### 在语义检查点换一个上下文
 
 完成一段工作，或开始一份彼此独立的新 spec 时，先更新 `.harness/memory.md`（当前事实）与 `.harness/plan.md`（下一步），并给 spec 写 checkpoint。新上下文从这些文件继续，不继承旧聊天全文。它仍要先验证工作树和已有证据。
 
-### 主动换窗：一句话交接给下一个窗口
+## 主动换窗：一句话交接给下一个窗口
 
 窗口快满，或你想把"讨论"和"执行"分开时，直接说：
 
@@ -485,7 +485,7 @@ TauLoop 希望保持轻量：Python 3.9+、标准库优先、macOS / Ubuntu / Wi
 
 **长任务应该怎么启动？**
 
-先在目标项目中运行 `tau init --root .` 创建骨架。长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：写 spec、用 `nohup`/`screen` 解耦启动、agent 在会话里 sleep、周期性醒来检查日志与进程、用验证证据收尾。
+先在目标项目中运行 `tau init --root .` 创建骨架。长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：写 spec、用 `nohup`/`screen` 解耦启动、写「值班状态」段并配系统定时器（值班模式），每个巡检回合读状态、查日志与进程、安全修复、更新状态，用验证证据收尾。
 
 **长任务在中断后没有自动继续**
 

@@ -57,7 +57,7 @@ def target_path(root: Path, relative: str) -> Path:
 
 
 def tool_files(assets: Path) -> Iterable[Tuple[str, Path]]:
-    for directory in ("hooks", "tools"):
+    for directory in ("hooks", "tools", "templates"):
         base = assets / directory
         for path in sorted(base.rglob("*")):
             if path.is_file() and "__pycache__" not in path.parts:

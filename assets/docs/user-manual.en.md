@@ -285,10 +285,10 @@ Long tasks follow the `Long-Running Tasks` convention in `AGENTS.md`: the proces
 ```text
 write the spec (stage commands, self-checks, expected artifacts)
   -> launch decoupled with nohup/screen; record PID and log path
-  -> agent sleeps in-session (coarse intervals)
-  -> wake: read the log tail, check the process, compare artifacts
+  -> write the shift-status section and arm a system timer (cron)
+  -> each inspection round: read state, check the log tail and process, compare artifacts
   -> pass: record evidence, move to the next stage
-  -> fail: read the log, fix the script, relaunch decoupled
+  -> fail: read the log, fix safely, relaunch decoupled
 ```
 
 A download in progress is not success, and a live process is not success either. With or without repair in between, success is always a unit of work that actually completed and passed its verification.
@@ -336,9 +336,9 @@ Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStan
 
 `screen` has no native Windows equivalent — either drop re-attach or run the stage under WSL/Git Bash.
 
-Record the PID, log path, and expected artifacts in `.harness/plan.md`. The agent sleeps in-session and wakes periodically to check progress with `ps -p <pid>` (or `Get-Process` on Windows) and the log tail; on failure it fixes the script and re-runs. There is no extra command surface.
+Record the PID, log path, and expected artifacts in `.harness/plan.md`, and write the shift-status section. When unattended, arm a system timer (e.g. cron every 15 minutes) that launches an inspection round (template: `.harness/templates/shift-agent.md`): read state, check progress with `ps -p <pid>` (or `Get-Process` on Windows) and the log tail, fix safely, update state, exit. When someone is watching, manual `ps -p <pid>` + log tail works the same way. There is no extra command surface.
 
-### Switch context at a semantic checkpoint
+## Switch context at a semantic checkpoint
 
 When you finish a piece of work or start an independent new spec, first update `.harness/memory.md` (current facts) and `.harness/plan.md` (next step), and checkpoint the spec. A new context continues from those files; it does not inherit the old chat transcript. It still verifies the working tree and existing evidence first.
 
@@ -472,7 +472,7 @@ Check the installation and whether `~/.codex/bin` is on `PATH`. Run `tau --help`
 
 **How should a long task be launched?**
 
-First run `tau init --root .` in the project. Long tasks follow the `Long-Running Tasks` convention in `AGENTS.md`: write a spec, launch decoupled with `nohup`/`screen`, sleep in-session, wake and check the log and process, and close out with verification evidence.
+First run `tau init --root .` in the project. Long tasks follow the `Long-Running Tasks` convention in `AGENTS.md`: write a spec, launch decoupled with `nohup`/`screen`, write the shift-status section and arm a system timer (shift mode), then each inspection round reads state, checks the log and process, fixes safely, updates state, and closes out with verification evidence.
 
 **A long task did not resume after interruption**
 
