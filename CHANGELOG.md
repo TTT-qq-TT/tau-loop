@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 - 2026-08-11
+
+- Shift mode timer becomes **agent-probed, three options**: the agent picks the best timer it can actually configure — Linux prefers `systemd --user timer` (OS-level, survives reboots via `loginctl enable-linger`; probe with `export XDG_RUNTIME_DIR=/run/user/$(id -u)` in the same Bash call), macOS uses launchd, and a `setsid` self-loop (process-level) is the fallback when no OS timer is reachable from the agent environment. A host-configured cron entry is consumed when present. The choice is recorded in the shift-status section (`timer_type` + `cron_note`).
+- Why: field evidence. On Linux the agent command layer hard-sets `PR_SET_NO_NEW_PRIVS` (process hardening, not a config flag), so setuid/setgid binaries (`crontab`, `sudo`) structurally fail from the agent shell; three prior approaches (cron in-session, elevation, sandbox_mode values) cannot bypass it. `systemd --user timer` needs no setuid and was verified end-to-end on two machines from both the host shell and a live agent session.
+- Shift-agent template v2 adds two disciplines: **environment awareness** (when permission is denied, suspect your own execution environment first — missing `XDG_RUNTIME_DIR`, NoNewPrivs hardening — and have the host re-check before concluding the system is broken) and **timer ownership** (inspection rounds never create/modify system timers; they only confirm the timer is still alive and note anomalies). New shift-status fields: `headless_cmd` (pinned launch command, prevents grabbing the wrong CLI), `timer_type`, `loop_pid`, `cron_note`.
+- Docs (zh/en): AGENTS.md Long-Running Tasks rewritten around the three-option pick (with `enable-linger` one-time setup for a normal user), user manual flow/execution/FAQ updated, first-use and SKILL.md aligned. No new commands, no daemon, no dependencies.
+
 ## 0.7.0 - 2026-08-10
 
 - New capability: **shift mode (long-task watch)** — unattended monitoring and repair of hours-long work (training, builds, downloads). Instead of sleeping in-session (unreliable on turn-based runtimes: foreground commands are bounded and shell background tasks detach), the agent decouples the process, writes a shift-status section in `.harness/plan.md`, and arms a system timer (cron / launchd / Task Scheduler) that periodically launches a short headless inspection round. Each round reads state, checks process/log/artifacts, fixes what it safely can, updates the state file, and exits. The user reads `done` / `need_decision` / `fixed` / `running` from the plan in the morning.

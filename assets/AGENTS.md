@@ -74,17 +74,30 @@ Core pattern:
 
 When no one will watch the task (overnight training, long builds), set up a periodic inspection instead of sleeping in-session:
 
-1. **Write the shift-status section** in `.harness/plan.md` (`task`, `cmd`, `process`, `log`, `artifact`, `acceptance`, `pid`, `status`, `next_check_at`; format per `.harness/templates/shift-agent.md`).
-2. **Arm a system timer** (OS-level; survives crashes by design — each launch is a fresh process):
-   - cron, headless single-shot mode: `*/15 * * * * cd /path/to/project && <agent> exec --prompt .harness/templates/shift-agent.md`
-   - examples: `claude -p "$(cat .harness/templates/shift-agent.md)"` / `codex exec --prompt-file .harness/templates/shift-agent.md`
-   - Windows: Task Scheduler launching the same command. Keep the machine awake while unattended.
-3. **Each inspection round** (a fresh headless agent): reads the shift-status section → checks process/log/artifacts → decides (continue / fix & relaunch / research & fix / finish & wrap up) → updates the section → exits. The template constrains behavior: read-only by default, no blind retries, backup + self-check before relaunch, hand over with a case file only when a real decision is needed.
+1. **Write the shift-status section** in `.harness/plan.md` (`task`, `cmd`, `process`, `log`, `artifact`, `acceptance`, `headless_cmd`, `timer_type`, `pid`, `status`, `next_check_at`; format per `.harness/templates/shift-agent.md`).
+2. **Pick a timer — try in order, first that works wins** (the agent decides; probe each, do not assume):
+   - **Linux → systemd user timer** (OS-level; survives reboots via `loginctl enable-linger`). Probe and arm:
+     ```bash
+     export XDG_RUNTIME_DIR=/run/user/$(id -u)   # must be in the SAME Bash call as systemctl
+     systemctl --user is-system-running           # if OK, proceed
+     ```
+     Write `~/.config/systemd/user/shift-<task>.{service,timer}` (service runs the headless inspection command from `headless_cmd`; timer `OnUnitActiveSec=15min`), then `systemctl --user daemon-reload && systemctl --user enable --now shift-<task>.timer`.
+     - If `systemctl --user` fails with "Failed to connect to bus", it is almost always the missing `XDG_RUNTIME_DIR` (see the export above) — **not** a broken system. If the user bus genuinely does not exist, one-time `loginctl enable-linger <user>` (a normal user can do this for themselves) makes the user instance persist across reboots.
+   - **macOS → launchd user agent** (no setuid restriction on macOS): a `LaunchAgent` plist running the headless inspection command on an interval.
+   - **Neither available (e.g. no systemd user instance, or agent shell cannot reach it) → self-loop** (process-level reliability; verified in practice): start a `setsid` background loop that runs the headless inspection command every N minutes and exits when the shift-status section reaches `done`/`need_decision` or the task process disappears:
+     ```bash
+     setsid bash -c 'while :; do <headless_cmd>; sleep 900; done' > logs/shift-loop.log 2>&1 &
+     ```
+     Record its PID in `loop_pid` and note the fallback reason in `cron_note`.
+   - **Host already configured cron → consume it** (enhancement, optional): if `crontab -l` already has the inspection entry, just use it.
+   - Record the choice: `timer_type: systemd-user | launchd | selfloop | cron` and a `cron_note` explaining why (e.g. "crontab blocked in agent env by NoNewPrivs → systemd user timer").
+   - **Never try to run `crontab` or `sudo` from the agent shell on Linux**: the agent's command layer hard-sets `PR_SET_NO_NEW_PRIVS` (process hardening, not a config flag), so setuid/setgid binaries structurally fail. If the agent environment cannot arm any timer, it falls back to the self-loop and records it — the host can later upgrade to cron from a normal shell if desired.
+3. **Each inspection round** (a fresh headless agent): reads the shift-status section → checks process/log/artifacts/timer health → decides (continue / fix & relaunch / research & fix / finish & wrap up) → updates the section → exits. The template constrains behavior: read-only by default, no blind retries, backup + self-check before relaunch, hand over with a case file only when a real decision is needed.
 4. **Check results later**: read the shift-status section — `done` (acceptance summary), `need_decision` (case notes), `fixed` (repair history), or `running` (still going). Never trust a running process as success; completion requires verified artifacts.
 
 Manual check-in works the same way when someone is watching: `ps -p <pid>`, log tail, artifact compare — all plain foreground commands — then record a short status note.
 
-The agent owns the loop: it decides what to check, what to fix, and when to stop. There is no separate executor, daemon, or event system — the timer is the OS's, and the state file is the truth. (The handoff mechanics mirror `Active Window-Switch` below: write state, exit, next round resumes from the file.)
+The agent owns the loop: it decides what to check, what to fix, and when to stop. There is no separate executor, daemon, or event system — the timer is the OS's (or a self-loop when the OS timer is unreachable from the agent env), and the state file is the truth. (The handoff mechanics mirror `Active Window-Switch` below: write state, exit, next round resumes from the file.)
 
 ## Active Window-Switch
 

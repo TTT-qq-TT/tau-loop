@@ -296,7 +296,7 @@ TauLoop 的规则不只是一份建议。项目里有一套小的机械检查（
 ```text
 写 spec（阶段命令、自检、预期产物）
   -> nohup/screen 解耦启动，记录 PID 与日志路径
-  -> 写值班状态段，配系统定时器（cron）
+  -> 写值班状态段，配定时器（三选一：systemd --user / launchd / 自循环）
   -> 每个巡检回合：读状态、查日志尾部与进程、比对产物
   -> 通过：记录证据，进入下一阶段
   -> 失败：读日志、安全修复、重新解耦启动
@@ -347,7 +347,7 @@ Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStan
 
 `screen` 在 Windows 没有等价物——要么放弃 re-attach，要么在 WSL/Git Bash 里跑。
 
-在 `.harness/plan.md` 记录 PID、日志路径与预期产物，并写「值班状态」段。无人值守时配一个系统定时器（如 cron 每 15 分钟）拉起巡检回合（模板见 `.harness/templates/shift-agent.md`）：读状态、用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查、安全修复、更新状态后退出。有人盯着时也可以手动 `ps -p <pid>` + 日志尾部检查。没有额外的命令面。
+在 `.harness/plan.md` 记录 PID、日志路径与预期产物，并写「值班状态」段。无人值守时配一个定时器（模板见 `.harness/templates/shift-agent.md`，三种机制由 agent 探测后选：Linux 优先 `systemd --user timer`，macOS 用 launchd，都没有则自循环兜底）：读状态、用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查、安全修复、更新状态后退出。有人盯着时也可以手动 `ps -p <pid>` + 日志尾部检查。没有额外的命令面。
 
 ### 在语义检查点换一个上下文
 
@@ -485,7 +485,7 @@ TauLoop 希望保持轻量：Python 3.9+、标准库优先、macOS / Ubuntu / Wi
 
 **长任务应该怎么启动？**
 
-先在目标项目中运行 `tau init --root .` 创建骨架。长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：写 spec、用 `nohup`/`screen` 解耦启动、写「值班状态」段并配系统定时器（值班模式），每个巡检回合读状态、查日志与进程、安全修复、更新状态，用验证证据收尾。
+先在目标项目中运行 `tau init --root .` 创建骨架。长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：写 spec、用 `nohup`/`screen` 解耦启动、写「值班状态」段并配定时器（三选一，见值班章节），每个巡检回合读状态、查日志与进程、安全修复、更新状态，用验证证据收尾。
 
 **长任务在中断后没有自动继续**
 

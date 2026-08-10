@@ -59,7 +59,7 @@ Use TauLoop to complete xxx.
 Arrange downloading, installation, and checks as verified stages. Do not start the next stage unless the prior one passes, and do not frequently inspect download progress.
 ```
 
-After launching, the agent hands the process to the operating system and arms a system timer (shift mode): the timer periodically launches a short headless inspection round that reads the log tail, checks the process, compares expected artifacts, fixes what it safely can, updates the state file, and exits. The local process is what waits, not the chat window; "the process is alive" is not "the task is done" — completion requires evidence that actually passed verification.
+After launching, the agent hands the process to the operating system and arms a timer (shift mode; the agent probes and picks one of three — Linux prefers `systemd --user timer`, macOS uses launchd, self-loop as fallback): the timer periodically launches a short headless inspection round that reads the log tail, checks the process, compares expected artifacts, fixes what it safely can, updates the state file, and exits. The local process is what waits, not the chat window; "the process is alive" is not "the task is done" — completion requires evidence that actually passed verification.
 
 ## Words you will keep hearing
 
