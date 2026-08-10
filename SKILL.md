@@ -62,6 +62,7 @@ After init, the project's `AGENTS.md` owns the convention:
 - Non-trivial work starts as a spec (`.harness/specs/<slug>.md`) before code changes.
 - Long-running work follows the `Long-Running Tasks` section of `AGENTS.md`: plan as a spec, launch decoupled (`nohup`/`screen`), write the shift-status section, pick a timer (systemd --user / launchd / self-loop, agent-probed), and let each headless inspection round check the log and process, fix what it safely can, update state, then close out with verification evidence.
 - Window switch follows the `Active Window-Switch` section of `AGENTS.md`: on "please hand off to the next window", decide the intent, confirm spec/plan/memory are current, write `.harness/handoffs/<id>.md`, and give the user a short launch line (≤5 lines, intent + handoff path + next action).
+- Bug triage follows the `Debug Triage: Research First` section of `AGENTS.md`: research official docs, the upstream repo (source + issues), the community, and papers (for research projects) before fixing — never blind-fix; record the evidence in the spec's Debug Evidence section per `.harness/templates/debug-triage.md`.
 - Close out a task with `.harness/hooks/pre-closeout.sh`; `verify.sh` checks doc freshness, task state, and (in the source repo) that packaged assets cannot drift.
 
 ## Boundaries

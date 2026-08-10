@@ -47,6 +47,16 @@ Read `.harness/report.md` only when the task needs prior experiments, audit trai
 - Update `.harness/failure-log.md` when the task exposed a reusable failure or prevention.
 - Update `.harness/report.md` only when the information is worth preserving as durable history.
 
+## Debug Triage: Research First
+
+When you hit a bug (test failure, command error, anomalous log, behavior mismatch, or a user-reported bug), default to **research first, fix second** — no blind fixes (trial-and-error patches, working around the symptom, or changing acceptance criteria to pass). The detailed workflow lives in `.harness/templates/debug-triage.md`; for unattended long-task rounds use `shift-agent.md` instead.
+
+- **Research priority**: ① official docs (current version, matching platform) → ② upstream repo (source + issue tracker; search GitHub with a distinctive fragment of the raw error message, not the whole message) → ③ open-source community (Stack Overflow, similar projects) → ④ papers / arXiv / technical reports (**research projects move this to ②**: research repos, bugs in algorithm/method implementation, or the user declaring a research scenario).
+- **Before you fix, you must have**: a minimal reproduction, the raw evidence (error text / stack / log tail), a falsifiable root-cause hypothesis, and a research trail with specific sources (URL / issue # / commit / paper title).
+- **Skipping research is allowed only for**: pure formatting/typing/mechanical edits with no behavior change; no network access (then record "not researched" and the residual risk). State the skip in the spec's debug-evidence section.
+- **Evidence lands in the spec**: for fix tasks, record 现象 (symptom) / 查证记录 (research trail) / 根因结论 (root cause) / 修复依据 (fix rationale) / 残余风险 (residual risk) in the spec's debug-evidence section; reusable failure modes go into `.harness/failure-log.md`.
+- **Hand over instead of fabricating**: when research is exhausted and there is still no fix, stop and hand over (observed / tried / researched / suggested next step) — never invent sources or conclusions.
+
 ## Specs
 
 - A `spec` (`.harness/specs/*.md`) is the task's durable contract: goal, boundaries, allowed files, acceptance. Start every task as a spec.

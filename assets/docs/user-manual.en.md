@@ -464,6 +464,12 @@ Do not turn a small change into a daemon, dashboard, or unverified desktop autom
 4. State command, permission, and capability limits precisely; a passing test is not a hardware or desktop guarantee.
 5. In a pull request, report user-visible behavior, verification, and residual risk.
 
+### On bugs: research first, then fix
+
+The agent's default bug discipline (test failure, error, unexpected behavior) is **research first, fix second**: reproduce and capture evidence, then consult in priority order — official docs, the upstream repo (source + issues; search GitHub with the error text), the open-source community, and papers (moved up for research projects) — before forming a falsifiable root-cause hypothesis and fixing. The evidence (symptom / research trail / root cause / fix rationale / residual risk) lands in the spec's Debug Evidence section; reusable failure modes go into `.harness/failure-log.md`.
+
+Expect the agent to say where it looked and why the fix follows; when research is exhausted it hands over honestly instead of inventing sources. Pure mechanical edits or an offline environment are recorded as "not researched" with the residual risk.
+
 ### Common problems
 
 **`tau: command not found`**
