@@ -280,13 +280,13 @@ It is not for open-ended research, "keep trying things," work that needs frequen
 
 ### One path from execution to verification
 
-Long tasks follow the `Long-Running Tasks` convention in `AGENTS.md`: the process is owned by the operating system and the agent is a periodic visitor.
+Long tasks follow the `Long-Running Tasks` convention in `AGENTS.md`: the process is owned by the operating system and the agent is an observer (foreground polling or periodic inspection). **Pick a mode first**: short (single step ≤1h, total ≤5h, someone present) → foreground watch + backup inspection; long/overnight/unattended → shift mode.
 
 ```text
 write the spec (stage commands, self-checks, expected artifacts)
-  -> launch decoupled with nohup/screen; record PID and log path
-  -> write the shift-status section and pick a timer (systemd --user / launchd / self-loop)
-  -> each inspection round: read state, check the log tail and process, compare artifacts
+  -> launch decoupled: Linux prefers systemd-run --user (nohup can be killed with the session's process group); record PID/unit and log path
+  -> write the shift-status section (incl. status_file), pick a mode: foreground poll + backup timer / inspection timer
+  -> each inspection round: read the status file, check the log tail and process/unit, compare artifacts
   -> pass: record evidence, move to the next stage
   -> fail: read the log, fix safely, relaunch decoupled
 ```
@@ -324,8 +324,11 @@ Repair has boundaries: which files may change, how many attempts, and how much t
 Launch a long task:
 
 ```bash
+# Linux (preferred): systemd-owned, survives session/process-group teardown
+systemd-run --user --unit=stage1 --collect bash -c 'cd <root> && bash scripts/stage.sh >> logs/stage.log 2>&1'
+systemctl --user is-active stage1   # liveness check; the unit name can go in the shift-status `pid` field
+# without systemd, fall back to nohup / screen
 nohup bash scripts/stage.sh > logs/stage.log 2>&1 &
-# or screen -dmS stage bash scripts/stage.sh
 ```
 
 On native Windows (PowerShell), use `Start-Process` instead:
@@ -336,7 +339,9 @@ Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStan
 
 `screen` has no native Windows equivalent — either drop re-attach or run the stage under WSL/Git Bash.
 
-Record the PID, log path, and expected artifacts in `.harness/plan.md`, and write the shift-status section. When unattended, pick a timer (template: `.harness/templates/shift-agent.md`; the agent probes and chooses: Linux prefers `systemd --user timer`, macOS uses launchd, self-loop as fallback) that launches an inspection round: read state, check progress with `ps -p <pid>` (or `Get-Process` on Windows) and the log tail, fix safely, update state, exit. When someone is watching, manual `ps -p <pid>` + log tail works the same way. There is no extra command surface.
+Record the PID (or systemd unit name), log path, status file, and expected artifacts in `.harness/plan.md`, and write the shift-status section (including `status_file` pointing to the task's machine-readable status file — one appended line per step; polling, inspection, and handover all read it, so they agree). When unattended, pick a timer (template: `.harness/templates/shift-agent.md`; the agent probes and chooses: Linux prefers `systemd --user timer`, macOS uses launchd, self-loop as fallback) that launches an inspection round: read the status file, check progress with `ps -p <pid>` / `systemctl --user is-active` (or `Get-Process` on Windows) and the log tail, fix safely, update state, exit.
+
+**Short tasks (≤5h, someone present)**: you do not have to rely on inspection alone — poll the status file in the foreground (a `bash` loop: `sleep 120` + read status + check the unit; a single call can run 10–20 minutes), so failures are diagnosed and fixed within minutes. Still arm a 15-minute backup timer as "a second pair of eyes if the foreground dies." Interrupted polling does not affect the task (the process is OS-owned) — come back and resume reading the status file. Any new model/step must run a small smoke test before its first real run — dtype/path/memory issues only surface on first real inference.
 
 ## Switch context at a semantic checkpoint
 

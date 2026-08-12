@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 - 2026-08-12
+
+- Long-running tasks gain a **dual-mode watch**, proven by a real 2.5-hour experiment (2026-08-12: IndoorUAV VLA evaluation, three models × smoke+stratified on one GPU, 6 runs all succeeded, 4 runtime bugs fixed mid-flight in ~35 min). The single shift-agent path is now split by duration: **Mode A — foreground watch** for short tasks (single run ≤1h, total ≤5h, someone present): launch via `systemd-run --user` (OS-owned, survives session/process-group teardown), drive a machine-readable status file (one `STEP=START|DONE|FAIL ...` line appended per step, read by polling, inspection rounds, and handover alike), poll in the foreground (a bash loop `sleep 120` + read status + `systemctl --user is-active` runs 10–20 min per call), and arm a 15-min backup inspection timer as "a second pair of eyes". **Mode B — shift agent** stays for long/overnight/unattended work (>5h). Pick criteria and the full Mode A playbook live in `AGENTS.md` Long-Running Tasks.
+- **Launch decoupling now prefers `systemd-run --user`** over `nohup`: field evidence — nohup background processes were killed with the agent session's process group (twice) before switching to a systemd transient unit. `nohup`/`screen` remain the fallback without systemd; Windows keeps `Start-Process`.
+- **Status-file-driven shift-status section**: new `status_file` field (the task's own machine-readable status file; polling/inspection/handover all read it, so they agree and history survives) and `mode: foreground | shift`; `pid` now accepts a systemd unit name (`systemctl --user is-active`). All existing fields kept — old watch sections stay compatible.
+- Shift-agent template v3 adds two disciplines learned in the field: **kill precision** (a `pkill -f <long command string>` can match and kill your own shell — use exact PIDs / more specific patterns) and the **smoke hard gate** (any new model/step must run a small smoke test before its first real run — dtype/path/memory issues only surface on first real inference). Template self-check now also requires `summary` to agree with the status file when one is declared.
+- Docs (zh/en): user manual long-task flow, execution, and first-use aligned to the two modes and systemd-run; SKILL.md updated. No new commands, no daemon, no dependencies — doc/template changes only; `tau init` remains the single command surface.
+
 ## 0.8.0 - 2026-08-11
 
 - New capability: **research-first bug triage** — when the agent hits a bug (test failure, command error, anomalous log, behavior mismatch, or a user-reported bug), it defaults to research first, fix second: no blind fixes (trial-and-error patches, working around the symptom, or changing acceptance criteria to pass).

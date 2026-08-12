@@ -291,13 +291,13 @@ TauLoop 的规则不只是一份建议。项目里有一套小的机械检查（
 
 ### 一条从执行到验证的路径
 
-长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：进程由操作系统托管，agent 是周期性访问者。
+长任务按 `AGENTS.md` 的 `Long-Running Tasks` 约定执行：进程由操作系统托管，agent 是观测者（前台轮询或周期性巡检）。**先选模式**：短时（单步 ≤1h、总 ≤5h、人在场）→ 前台等待 + 保底巡检；超长/跨夜/无人值守 → 值班模式。
 
 ```text
 写 spec（阶段命令、自检、预期产物）
-  -> nohup/screen 解耦启动，记录 PID 与日志路径
-  -> 写值班状态段，配定时器（三选一：systemd --user / launchd / 自循环）
-  -> 每个巡检回合：读状态、查日志尾部与进程、比对产物
+  -> 解耦启动：Linux 优先 systemd-run --user（nohup 会随会话进程组被杀），记录 PID/unit 名与日志路径
+  -> 写值班状态段（含 status_file），选模式：前台轮询 + 保底 timer / 定时器巡检
+  -> 每个巡检回合：读状态文件、查日志尾部与进程/unit、比对产物
   -> 通过：记录证据，进入下一阶段
   -> 失败：读日志、安全修复、重新解耦启动
 ```
@@ -335,8 +335,11 @@ agent 会把长任务写成 spec（`.harness/specs/`），每一阶段声明命�
 启动长任务：
 
 ```bash
+# Linux（推荐）：systemd 托管，不随会话/进程组被杀
+systemd-run --user --unit=stage1 --collect bash -c 'cd <root> && bash scripts/stage.sh >> logs/stage.log 2>&1'
+systemctl --user is-active stage1   # 存活检查；unit 名可记入值班段 pid
+# 无 systemd 时用 nohup / screen
 nohup bash scripts/stage.sh > logs/stage.log 2>&1 &
-# 或 screen -dmS stage bash scripts/stage.sh
 ```
 
 原生 Windows（PowerShell）用 `Start-Process` 替代：
@@ -347,7 +350,9 @@ Start-Process python -ArgumentList "scripts/stage.py" -NoNewWindow -RedirectStan
 
 `screen` 在 Windows 没有等价物——要么放弃 re-attach，要么在 WSL/Git Bash 里跑。
 
-在 `.harness/plan.md` 记录 PID、日志路径与预期产物，并写「值班状态」段。无人值守时配一个定时器（模板见 `.harness/templates/shift-agent.md`，三种机制由 agent 探测后选：Linux 优先 `systemd --user timer`，macOS 用 launchd，都没有则自循环兜底）：读状态、用 `ps -p <pid>`（Windows 用 `Get-Process`）和日志尾部检查、安全修复、更新状态后退出。有人盯着时也可以手动 `ps -p <pid>` + 日志尾部检查。没有额外的命令面。
+在 `.harness/plan.md` 记录 PID（或 systemd unit 名）、日志路径、状态文件与预期产物，并写「值班状态」段（含 `status_file` 指向任务的机器可读状态文件——每步追加一行，轮询/巡检/交接三方只读它，口径统一）。无人值守时配一个定时器（模板见 `.harness/templates/shift-agent.md`，三种机制由 agent 探测后选：Linux 优先 `systemd --user timer`，macOS 用 launchd，都没有则自循环兜底）：读状态文件、用 `ps -p <pid>` / `systemctl --user is-active`（Windows 用 `Get-Process`）和日志尾部检查、安全修复、更新状态后退出。
+
+**短时任务（≤5h、人在场）**：不必全靠巡检——前台轮询状态文件（`bash` 循环 `sleep 120` + 读状态 + 查 unit，单次调用可持续 10–20 分钟），故障 2 分钟内即时诊断修复；同时配一个 15 分钟保底 timer 作为「万一前台断了还有第二双眼睛」。轮询被中断不影响任务（进程由 OS 托管），回来继续读状态即可。新模型/新环节首次运行前必须先跑 smoke——dtype/路径/显存类问题只在首次真实推理暴露。
 
 ### 在语义检查点换一个上下文
 

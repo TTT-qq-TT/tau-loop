@@ -24,6 +24,8 @@ coverage.xml
 .harness/failure-log.md
 .harness/capability-alignment.md
 .harness/handoffs/
+# 实践案例等内部资料，不推送 GitHub
+.harness/docs/
 .harness/specs/*
 !.harness/specs/TEMPLATE.md
 !.harness/specs/README.md
