@@ -267,6 +267,10 @@ These checks are cheap — each run takes a moment. They guarantee that tasks ar
 
 ## Letting long-running work finish quietly
 
+### DeepSeek Harness host: DSH native path
+
+When the host is DeepSeek Harness (dsh web), long work uses the DSH native path — no timers, no polling, no inspection rounds: the agent packages the whole flow into one script, launches it as a background job with `run_in_background: true`, records the job id in the shift-status section, and ends the turn; **completion, failure, or interruption of the job wakes the session automatically**, and the agent continues in the foreground — reads the status file, fixes what failed (backup → smoke → relaunch), runs the next stage, and wraps up once everything passes acceptance. Details and discipline live in `AGENTS.md` → Long-Running Tasks → DSH native path.
+
 ### When to use a long task
 
 A long task fits local work with ordered stages, a checkable result for each stage, and a finite overall boundary:

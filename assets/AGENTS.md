@@ -65,6 +65,25 @@ When you hit a bug (test failure, command error, anomalous log, behavior mismatc
 
 ## Long-Running Tasks
 
+### DSH native path (host = DeepSeek Harness)
+
+In a DeepSeek Harness session the long-running process is watched by DSH itself: launch it as a background job, end the turn, and DSH wakes the session when the job settles — **completion, failure, and interruption all wake you** — then continue in the foreground. No polling loop, no OS timer, no shift agent, no user operation.
+
+1. **Take the goal**: the user gives one sentence of intent; write the task as a spec and record a shift-status section in `.harness/plan.md` (task, command/script, log, status_file, artifact, acceptance).
+2. **Package**: put the whole long flow into one script that appends one machine-readable line per step to a status file (`STEP=START|DONE|FAIL model=... exit=...`). One flow = one background job = one wake-up.
+3. **Launch**: start the script with `run_in_background: true` (no timeout; the host owns the process), write the job id into the shift-status section, end the turn, and wait.
+4. **Wake and continue**: collect the result with `job_output <job_id>`, read the status file, fix what failed (backup → smoke → relaunch), keep working in the foreground on the next stage, and when everything passes acceptance wrap up, update the shift-status section, and report.
+5. **Short foreground waits only**: `job_output(job_id, wait: true, timeout_ms: 600000)` blocks up to 10 minutes per call and may be repeated; never block on a long wait — end the turn and let DSH wake you.
+
+DSH discipline:
+
+- One long flow = one script job. Consecutive automatic wake-ups are capped at 3 per owner; put every stage in one script, or bridge stages with a foreground `job_output(wait)`.
+- **Do not create a goal while waiting on a background job** — goal rounds auto-open on an idle agent and fight the wait; goals are for continuous-work objectives only.
+- A host restart loses background jobs (process-local): for cross-restart unattended work, make the script resumable (status-file driven) and re-invoke the session after restart.
+- Everything else stays: research-first debugging, backup + smoke before relaunch, write facts, never fake completion.
+
+### Non-DSH hosts (Claude Code / Codex / other runtimes)
+
 Long-running work (large downloads, builds, data assembly, model training) is **owned by the OS**, not the agent session. The agent decouples the process from the session, records state in `.harness/plan.md`, and then either **watches it in the foreground** (short tasks) or hands the watch to a **shift agent** (long/unattended work): a system timer periodically launches a short headless inspection round that reads state, checks progress, fixes what it safely can, and writes the outcome back to the state file.
 
 **Pick a mode first** (two criteria; decide before launching):

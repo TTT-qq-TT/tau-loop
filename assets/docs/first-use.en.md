@@ -61,13 +61,15 @@ Arrange downloading, installation, and checks as verified stages. Do not start t
 
 After launching, the agent hands the process to the **operating system** (systemd-owned on Linux when available) and picks an observation mode by duration: **short tasks** (a few hours total, someone present) are watched in the foreground by polling the status file, with a 15-minute backup inspection timer armed — failures get diagnosed and fixed within minutes; **long/overnight/unattended** work goes to shift mode — the agent arms a timer (it probes and picks one of three: Linux prefers `systemd --user timer`, macOS uses launchd, self-loop as fallback) that periodically launches a short headless inspection round reading the status file, checking the log tail and process, comparing expected artifacts, fixing what it safely can, updating the state file, and exiting. The local process is what waits, not the chat window; "the process is alive" is not "the task is done" — completion requires evidence that actually passed verification.
 
+> If the host is DeepSeek Harness, it is even simpler: the agent launches the flow as a **background job** (`run_in_background`), ends the turn, and DSH **wakes the session automatically** when the job completes, fails, or is interrupted — the agent continues in the foreground until done. No polling, no timers, no inspection rounds.
+
 ## Words you will keep hearing
 
 - **spec**: the contract for one piece of work. The agent breaks your goal into pieces and, for each one, writes down what changes, what counts as done, and how to verify before touching code. When the scope changes, update the spec first.
 - **plan**: the project's roadmap — the current goal, where it stands, and what comes next. To see progress, just say "show me the current plan".
 - **checkpoint**: the state left after a piece of work — what just happened, where the evidence is, what comes next. After a new window or the next day, the agent continues from here.
 - **memory**: facts the project still needs to remember — not a chat transcript, but conclusions, verified environment facts, and known risks.
-- **long-running tasks**: slow work like downloads and builds is owned by an OS-managed process; the agent wakes periodically to check (covered above), instead of occupying the chat window.
+- **long-running tasks**: slow work like downloads and builds is owned by an OS-managed process; the agent wakes periodically to check (covered above), instead of occupying the chat window. On a DeepSeek Harness host this becomes a background job plus automatic wake-up (see above).
 - **handoff (window switch)**: when the context window is nearly full or you want to separate discussion from execution, say "please hand off to the next window". The agent writes a handover file and gives you one launch line; paste it into a fresh window and it continues seamlessly, no re-explaining.
 
 ## The project remembers

@@ -278,6 +278,10 @@ TauLoop 的规则不只是一份建议。项目里有一套小的机械检查（
 
 ## 如何放心地让它做长时任务
 
+### DeepSeek Harness 宿主：DSH 原生路径
+
+如果宿主是 DeepSeek Harness（dsh web），长任务走 DSH 原生路径，不需要定时器、轮询或巡检回合：agent 把整个流程做成一个脚本，用 `run_in_background: true` 挂成后台任务，job id 写进值班段，然后结束回合；后台任务**完成、失败或中断都会自动叫醒会话**，agent 醒来继续前台工作——读状态文件、修复（备份→smoke→重挂）、跑下一阶段，全部通过验收后收尾汇报。细节与纪律见 `AGENTS.md` → Long-Running Tasks → DSH native path。
+
 ### 什么时候应该交给长任务
 
 长任务 适合**步骤有顺序、每步都能验证、总时长有边界**的本地任务，例如：
